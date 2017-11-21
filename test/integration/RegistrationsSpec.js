@@ -51,6 +51,7 @@ contract('Registrations', function(accounts) {
 
     describe('when the user has enough tokens to register', function() {
       var humanStandardToken;
+      var cost = new BN('1000', 10);
 
       beforeEach(function() {
         return HumanStandardToken
@@ -64,6 +65,12 @@ contract('Registrations', function(accounts) {
               })
               .then(function(res) {
                 assert.isDefined(res);
+
+                return humanStandardToken
+                  .approve(instance.address, cost.toNumber())
+                  .then(function(res) {
+                    assert.isDefined(res);
+                  });
               });
           });
       });
@@ -89,7 +96,7 @@ contract('Registrations', function(accounts) {
           return humanStandardToken
             .balanceOf(defaultAccount)
             .then(function(res) {
-              var expected = new BN('1000000000000000000', 10).sub(new BN('1000', 10));
+              var expected = new BN('1000000000000000000', 10).sub(cost);
               assert(res.eq(expected) === true);
             });
         });
