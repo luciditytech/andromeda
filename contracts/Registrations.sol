@@ -13,6 +13,8 @@ contract Registrations is Ownable {
     require(tokensOwned > 0);
   }
 
+  
+
   /* owner only functions */
   function changeTokenAddress(address _newTokenAddress) 
     onlyOwner {

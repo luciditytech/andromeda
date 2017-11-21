@@ -68,15 +68,30 @@ contract('Registrations', function(accounts) {
           });
       });
 
-      it('adds the verifier', function(done) {
-        instance.add(
-          {
-            from: defaultAccount
-          }
-        )
-        .then(function(res) {
-          assert.isDefined(res);
-          done();
+      describe('when it adds the verifier', function() {
+        beforeEach(function() {
+          return instance.add(
+            {
+              from: defaultAccount
+            }
+          )
+          .then(function(res) {
+            assert.isDefined(res);
+          });
+        });
+
+
+        it('does not throw an exception', function() {
+          assert(true === true);
+        });
+
+        it('deducts the expected number of tokens', function() {
+          return humanStandardToken
+            .balanceOf(defaultAccount)
+            .then(function(res) {
+              var expected = new BN('1000000000000000000', 10).sub(new BN('1000', 10));
+              assert(res.eq(expected) === true);
+            });
         });
       });
     });
