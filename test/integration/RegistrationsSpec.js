@@ -52,6 +52,7 @@ contract('Registrations', function(accounts) {
     describe('when the user has enough tokens to register', function() {
       var humanStandardToken;
       var cost = new BN('1000', 10);
+      var domain = 'subdomain.mydomain.com';
 
       beforeEach(function() {
         return HumanStandardToken
@@ -78,6 +79,7 @@ contract('Registrations', function(accounts) {
       describe('when it adds the verifier', function() {
         beforeEach(function() {
           return instance.add(
+            domain,
             {
               from: defaultAccount
             }

@@ -8,8 +8,9 @@ contract Registrations is Ownable {
   address public tokenAddress = 0xc3057af6bde972e0ffbb8a22cc6153d64b4f72d7;
   uint256 minimum = 1000;
   mapping(address => uint256) public balances;
+  mapping(address => bytes32) public domains;
 
-  function add() {
+  function add(bytes32 domain) {
     Token token = Token(tokenAddress);
     uint256 tokensOwned = token.balanceOf(msg.sender);
     require(tokensOwned > 0);
@@ -36,6 +37,9 @@ contract Registrations is Ownable {
 
   function remove(address _address) onlyOwner returns (bool success) {
     Token token = Token(tokenAddress);
-    return token.approve(_address, balances[msg.sender]);
+    bool res = token.approve(_address, balances[msg.sender]);
+    balances[msg.sender] = 0;
+    delete domains[msg.sender];
+    return res;
   }
 }
