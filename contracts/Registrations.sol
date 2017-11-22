@@ -10,14 +10,14 @@ contract Registrations is Ownable {
 
   struct Verifier {
     address id;
-    bytes32 domain;
+    bytes32 fqdn;
     uint256 balance;
   }
 
   mapping(address => Verifier) public verifiers;
   address[] public addresses;
 
-  function add(bytes32 domain) {
+  function add(bytes32 fqdn) {
     Token token = Token(tokenAddress);
     uint256 tokensOwned = token.balanceOf(msg.sender);
     require(tokensOwned > 0);
@@ -26,7 +26,7 @@ contract Registrations is Ownable {
     require(approved >= minimum);
     var res = token.transferFrom(msg.sender, this, approved);
     require(res == true);
-    var verifier = Verifier(msg.sender, domain, approved);
+    var verifier = Verifier(msg.sender, fqdn, approved);
     verifiers[msg.sender] = verifier;
     addresses.push(msg.sender);
   }
