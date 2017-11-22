@@ -14,7 +14,8 @@ const SpecHelper = require('../SpecHelper.js');
 contract('Registrations', function(accounts) {
   var instance;
   var snapshotId;
-  var defaultAccount = accounts[0];
+  var ownerAccount = accounts[0];
+  var userAccount = accounts[1];
   var conf = JSON.parse(fs.readFileSync('./conf/development.json'));
 
   beforeEach(function() {
@@ -39,7 +40,7 @@ contract('Registrations', function(accounts) {
       it('does not add the verifier', function(done) {
         instance.add(
           {
-            from: defaultAccount
+            from: userAccount
           }
         )
         .catch(function(err) {
@@ -62,13 +63,15 @@ contract('Registrations', function(accounts) {
 
             return instance
               .changeTokenAddress(humanStandardToken.address, {
-                from: defaultAccount
+                from: ownerAccount
               })
               .then(function(res) {
                 assert.isDefined(res);
 
                 return humanStandardToken
-                  .approve(instance.address, cost.toNumber())
+                  .approve(instance.address, cost.toNumber(), {
+                    from: userAccount
+                  })
                   .then(function(res) {
                     assert.isDefined(res);
                   });
@@ -81,7 +84,7 @@ contract('Registrations', function(accounts) {
           return instance.add(
             domain,
             {
-              from: defaultAccount
+              from: userAccount
             }
           )
           .then(function(res) {
@@ -96,10 +99,19 @@ contract('Registrations', function(accounts) {
 
         it('deducts the expected number of tokens', function() {
           return humanStandardToken
-            .balanceOf(defaultAccount)
+            .balanceOf(userAccount)
             .then(function(res) {
               var expected = new BN('1000000000000000000', 10).sub(cost);
               assert(res.eq(expected) === true);
+            });
+        });
+
+        it('adds the verifier to the list', function() {
+          return instance
+            .getNumberOfVerifiers
+            .call()
+            .then(function(res) {
+              assert(res.toNumber() === 1);
             });
         });
       });
