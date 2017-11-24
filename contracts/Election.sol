@@ -89,7 +89,6 @@ contract Election is Ownable, ReentrancyGuard {
     processVoters();
   }
 
-  
   function countVotes() private onlyOwner {
     // count keys and their appearances by value
     for (uint256 i = 0; i < addresses.length; i++) {
@@ -143,5 +142,4 @@ contract Election is Ownable, ReentrancyGuard {
       }
     }
   }
-
 }
