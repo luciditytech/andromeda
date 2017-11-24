@@ -53,11 +53,11 @@ contract Registrations is Ownable {
     Token token = Token(tokenAddress);
     var verifier = verifiers[_address];
     bool res = token.approve(_address, verifier.balance);
-    require(res);
+    if (!res) { revert(); }
 
     bool found = false;
 
-    for (uint256 i = 0; i <= addresses.length; i++) {
+    for (uint256 i = 0; i < addresses.length; i++) {
       var item = addresses[i];
       if (item == _address) { 
         delete addresses[i];
@@ -66,7 +66,7 @@ contract Registrations is Ownable {
       }
     }
 
-    require(found);
+    if (!found) { revert(); }
     delete verifiers[msg.sender];
   }
 }

@@ -7,6 +7,18 @@ and distributing payments to participating verifiers.
 
 TODO
 
+## Reaching Consensus [WiP]
+
+## On-Chain Consensus
+
+Verifiers submit a set of flattened metrics 
+
+```
+function vote(_);
+```
+
+## Off-Chain Consensus
+
 ## Testing
 
 ### Launch testrpc
