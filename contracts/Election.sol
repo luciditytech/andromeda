@@ -6,6 +6,7 @@ import "contracts/Registrations.sol";
 
 // @title On-Chain voting of aggregated metrics
 // @author Miguel Morales
+// @todo Chairperson Ownership, Weights, Payments
 
 contract Election is Ownable, ReentrancyGuard {
   address public registryAddress = 0xc3057af6bde972e0ffbb8a22cc6153d64b4f72d7;
@@ -13,10 +14,12 @@ contract Election is Ownable, ReentrancyGuard {
   address public chairperson;
   mapping(address => Voter) public voters;
   address[] public addresses;
+  uint blockNumber;
   mapping(address => mapping(bytes32 => bool)) voterSeen;
   mapping(bytes32 => mapping(uint256 => uint256)) counts;
   mapping(bytes32 => uint256) results;
   bytes32[] countedKeys;
+  mapping(bytes32 => uint256[]) valuesSeen;
 
   struct Voter {
     uint weight;
@@ -27,12 +30,14 @@ contract Election is Ownable, ReentrancyGuard {
     uint256 discrepancies;
   }
 
-  function Election(address _chairperson) {
+  function Election(address _chairperson, uint _blockNumber) {
     chairperson = _chairperson;
+    blockNumber = _blockNumber;
     voters[chairperson].weight = 1;
   }
 
   function vote(bytes32[] _keys, uint256[] _values) external nonReentrant {
+    require(block.number - 1 == blockNumber); // only allow voting for one block
     require(_keys.length == _values.length);
     Voter sender = voters[msg.sender];
   	require(!sender.voted);
@@ -40,9 +45,22 @@ contract Election is Ownable, ReentrancyGuard {
     for (uint256 i = 0; i < _keys.length; i++) {
       var key = _keys[i];
       var value = _values[i];
-      require(!voterSeen[msg.sender][key]);
+      if (voterSeen[msg.sender][key]) { revert(); }
       sender.metrics[key] = value;
       voterSeen[msg.sender][key] = true;
+      bool seen = false;
+
+      for (uint256 ii = 0; ii < valuesSeen[key].length; ii++) {
+        uint256 check = valuesSeen[key][ii];
+        
+        if (check == value) {
+          seen = true;
+        }
+      }
+
+      if (!seen) {
+        valuesSeen[key].push(value);
+      }
     }
 
     sender.keys = _keys;
@@ -106,12 +124,11 @@ contract Election is Ownable, ReentrancyGuard {
     // determine 'correct' values based on consensus
     for (uint256 x = 0; x < countedKeys.length; x++) {
       bytes32 key = countedKeys[x];
-      uint256[] valuesSeen; //TODO
       uint256 correctValue = 0;
       uint256 maxTimesSeen = 0;
 
-      for (uint256 v = 0; v < valuesSeen.length; v++) {
-        uint256 valueSeen = valuesSeen[v];
+      for (uint256 v = 0; v < valuesSeen[key].length; v++) {
+        uint256 valueSeen = valuesSeen[key][v];
         uint256 timesSeen = counts[key][valueSeen];
 
         if (timesSeen >= maxTimesSeen) {

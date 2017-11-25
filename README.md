@@ -5,19 +5,15 @@ and distributing payments to participating verifiers.
 
 ## Overview
 
+### Election Process
+
+* Every hour, a chairperson initiates an election process.
+* An election process takes places which lasts for one block.
+* A historical record of checkpoint elections is maintained by blockchain.
+
+### Payment Process
+
 TODO
-
-## Reaching Consensus [WiP]
-
-## On-Chain Consensus
-
-Verifiers submit a set of flattened metrics 
-
-```
-function vote(_);
-```
-
-## Off-Chain Consensus
 
 ## Testing
 
