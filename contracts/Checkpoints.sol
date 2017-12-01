@@ -12,7 +12,7 @@ contract Checkpoints is Ownable, ReentrancyGuard {
 
   /* owner only functions */
   function start(uint256 _startsAt, uint256 _endsAt) onlyOwner {
-  	Election election = new Election(msg.sender, block.number);
+  	Election election = new Election(owner, block.number);
   	NewElection(_startsAt, _endsAt, election);
   }
 }

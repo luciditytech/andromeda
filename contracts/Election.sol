@@ -6,9 +6,9 @@ import "contracts/Registrations.sol";
 
 // @title On-Chain voting of aggregated metrics
 // @author Miguel Morales
-// @todo Chairperson Ownership, Weights, Payments
+// @todo Weights, Payments
 
-contract Election is Ownable, ReentrancyGuard {
+contract Election is ReentrancyGuard {
   address public registryAddress = 0xc3057af6bde972e0ffbb8a22cc6153d64b4f72d7;
 
   address public chairperson;
@@ -101,13 +101,14 @@ contract Election is Ownable, ReentrancyGuard {
     Step 3: Determine the verifiers that did not meet the criteria.
   */
 
-  function unlock() public onlyOwner {
+  function unlock() public {
+    require(msg.sender == chairperson);
     countVotes();
     setCorrectValues();
     processVoters();
   }
 
-  function countVotes() private onlyOwner {
+  function countVotes() private {
     // count keys and their appearances by value
     for (uint256 i = 0; i < addresses.length; i++) {
       Voter voter = voters[addresses[i]];
@@ -120,7 +121,7 @@ contract Election is Ownable, ReentrancyGuard {
     }
   }
 
-  function setCorrectValues() private onlyOwner {
+  function setCorrectValues() private {
     // determine 'correct' values based on consensus
     for (uint256 x = 0; x < countedKeys.length; x++) {
       bytes32 key = countedKeys[x];
