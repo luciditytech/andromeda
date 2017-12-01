@@ -37,7 +37,7 @@ contract Election is Ownable, ReentrancyGuard {
   }
 
   function vote(bytes32[] _keys, uint256[] _values) external nonReentrant {
-    require(block.number - 1 == blockNumber); // only allow voting for one block
+    require(block.number - 2 == blockNumber); // only allow voting for one block
     require(_keys.length == _values.length);
     Voter sender = voters[msg.sender];
   	require(!sender.voted);

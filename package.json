@@ -8,14 +8,15 @@
   "author": "Miguel Morales <miguel@zero-x.co>",
   "license": "MIT",
   "dependencies": {
+    "abi-decoder": "^1.0.9",
     "bip39": "2.3.1",
     "bn.js": "4.11.6",
     "ethereumjs-abi": "^0.6.4",
     "ethjs-provider-http": "0.1.6",
     "ethjs-query": "0.2.4",
     "ethjs-rpc": "0.1.5",
+    "token-sale-contracts": "file:../token-sale-contracts",
     "truffle-hdwallet-provider": "0.0.3",
-    "zeppelin-solidity": "^1.3.0",
-    "token-sale-contracts": "file:../token-sale-contracts"
+    "zeppelin-solidity": "^1.3.0"
   }
 }

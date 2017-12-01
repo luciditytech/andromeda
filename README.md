@@ -32,6 +32,12 @@ testrpc \
 truffle test
 ```
 
+### Deployment
+
+```
+truffle deploy --network ropsten
+```
+
 ## Licensed under MIT.
 
 This code is licensed under MIT.

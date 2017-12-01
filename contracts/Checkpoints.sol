@@ -8,13 +8,11 @@ import "contracts/Election.sol";
 // @author Miguel Morales
 
 contract Checkpoints is Ownable, ReentrancyGuard {
-  mapping(bytes32 => address) elections;
-  event NewElection(bytes32 key, address election);
+  event NewElection(uint256 startsAt, uint256 endsAt, address election);
 
   /* owner only functions */
-  function start(bytes32 _key) onlyOwner {
-    require(elections[_key] == address(0x0));
+  function start(uint256 _startsAt, uint256 _endsAt) onlyOwner {
   	Election election = new Election(msg.sender, block.number);
-  	NewElection(_key, election);
+  	NewElection(_startsAt, _endsAt, election);
   }
 }
