@@ -1,6 +1,4 @@
-var Checkpoints = artifacts.require("./Checkpoints.sol");
-var HumanStandardToken = artifacts.require('token-sale-contracts/contracts/HumanStandardToken.sol');
-
+var Registrations = artifacts.require("./Registrations.sol");
 const fs = require('fs');
 
 module.exports = function(deployer, network, accounts) {
@@ -10,17 +8,6 @@ module.exports = function(deployer, network, accounts) {
   if (network === 'development') {
     conf = JSON.parse(fs.readFileSync('./conf/development.json'));
     wallet = accounts[0];
-
-    deployer.deploy(
-      HumanStandardToken,
-      conf['total'],
-      conf['name'],
-      conf['decimals'],
-      conf['symbol'],
-      {
-        from: accounts[1]
-      }
-    );
   } else if (network === 'ropsten') {
     conf = JSON.parse(fs.readFileSync('./conf/development.json'));
     wallet = accounts[0];
@@ -29,7 +16,7 @@ module.exports = function(deployer, network, accounts) {
     wallet = conf['wallet'];
   }
 
-  deployer.deploy(Checkpoints, {
+  deployer.deploy(Registrations, {
     from: wallet
   });
 };

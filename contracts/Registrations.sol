@@ -5,19 +5,19 @@ import "token-sale-contracts/contracts/Token.sol";
 import "token-sale-contracts/contracts/HumanStandardToken.sol";
 
 contract Registrations is Ownable {
-  address public tokenAddress = 0xc3057af6bde972e0ffbb8a22cc6153d64b4f72d7;
-  uint256 minimum = 1000;
+  address public tokenAddress = 0x1588d300a9995934aa9daae19be285a66eb46c1c;
+  uint256 minimum = 1000 * 1000000000;
 
   struct Verifier {
     address id;
-    bytes32 fqdn;
+    string fqdn;
     uint256 balance;
   }
 
   mapping(address => Verifier) public verifiers;
   address[] public addresses;
 
-  function add(bytes32 fqdn) {
+  function create(string _fqdn) {
     Token token = Token(tokenAddress);
     uint256 tokensOwned = token.balanceOf(msg.sender);
     require(tokensOwned > 0);
@@ -26,17 +26,22 @@ contract Registrations is Ownable {
     require(approved >= minimum);
     var res = token.transferFrom(msg.sender, this, approved);
     require(res == true);
-    var verifier = Verifier(msg.sender, fqdn, approved);
+    var verifier = Verifier(msg.sender, _fqdn, approved);
     verifiers[msg.sender] = verifier;
     addresses.push(msg.sender);
   }
 
-  function getBalanceOf(address _address) returns (uint256) {
+  function getTokenAllowance() public constant returns (uint256) {
+    Token token = Token(tokenAddress);
+    return token.allowance(msg.sender, this);
+  }
+
+  function getBalanceOf(address _address) public constant returns (uint256) {
     var verifier = verifiers[_address];
     return verifier.balance;
   }
 
-  function getNumberOfVerifiers() public returns (uint) {
+  function getNumberOfVerifiers() public constant returns (uint) {
     return addresses.length;
   }
 
