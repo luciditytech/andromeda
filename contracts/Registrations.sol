@@ -31,6 +31,12 @@ contract Registrations is Ownable {
     addresses.push(msg.sender);
   }
 
+  function update(string _fqdn) {
+    var verifier = verifiers[msg.sender];
+    verifier.fqdn = _fqdn;
+    verifiers[msg.sender] = verifier;
+  }
+
   function getTokenAllowance() public constant returns (uint256) {
     Token token = Token(tokenAddress);
     return token.allowance(msg.sender, this);

@@ -5,6 +5,9 @@ and distributing payments to participating verifiers.
 
 ## Overview
 
+### Registration Process
+TODO
+
 ### Election Process
 
 * Every hour, a chairperson initiates an election process.
