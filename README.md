@@ -16,9 +16,32 @@ TODO
 
 ### Payment Process
 
-TODO
+## Development
 
-## Testing
+---
+
+### Prerequisites
+
+1. [brew](http://brew.sh)
+
+  ```sh
+  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  ```
+
+1. [HubFlow](http://datasift.github.io/gitflow/)
+
+  ```sh
+  brew install hubflow
+  ```
+
+---
+
+## Setup
+
+1. `npm install -g truffle`
+1. `git clone git@github.com:kr8os/andromeda.git`
+1. `npm install`
+1. `git hf init`
 
 ### Launch testrpc
 
@@ -29,11 +52,15 @@ testrpc \
   --gasPrice 40000000000
 ```
 
-### Run tests
+### Compiling and migrating smart contracts
 
-```
-truffle test
-```
+1. `truffle compile`
+1. `truffle migrate`
+
+### Testing smart contracts
+
+1. `truffle test`
+1. With code coverage: `./node_modules/.bin/solidity-coverage`
 
 ### Deployment
 
