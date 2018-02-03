@@ -43,6 +43,10 @@ contract Election is ReentrancyGuard {
     endsAt = _endsAt;
   }
 
+  function getNumberOfVerifiers() public view returns (uint) {
+    return addresses.length;
+  }
+
   function vote(bytes32 _proposal) external nonReentrant {
     require(block.number - 2 == blockNumber); // only allow voting for one block
     Voter sender = voters[msg.sender];

@@ -33,6 +33,7 @@ contract Chain is Ownable {
     uint256[] _conversions
   ) {
     require(authorized[msg.sender]);
+
     Block memory block = Block(
       {
         number: blockNumber,
