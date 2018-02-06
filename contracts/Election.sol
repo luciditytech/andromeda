@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 import "sancus/contracts/Registrations.sol";
-import "contracts/Chain.sol";
+import "contracts/AbstractChain.sol";
 
 contract Election is ReentrancyGuard {
   address public registryAddress;
@@ -81,6 +81,9 @@ contract Election is ReentrancyGuard {
 
     root = newRoot;
     counted = true;
+
+    AbstractChain chain = AbstractChain(chainAddress);
+    chain.electionCounted(this);
   }
 
   function reveal(
@@ -98,9 +101,9 @@ contract Election is ReentrancyGuard {
     bytes32 proof = hash(previousRoot, _campaignIds, _channelIds, _impressions, _clicks, _conversions);
     require(proof == sender.proposal);
 
-    Chain chain = Chain(chainAddress);
+    AbstractChain chain = AbstractChain(chainAddress);
 
-    chain.mint(
+    chain.electionEnded(
       this,
       sender.proposal,
       _campaignIds,
