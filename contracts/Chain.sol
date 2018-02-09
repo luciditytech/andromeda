@@ -19,7 +19,7 @@ contract Chain is Ownable {
     uint256[] conversions;
   }
 
-  event LogElectionStart(uint256 startsAt, uint256 endsAt, address election);
+  event LogElectionStart(uint256 startsAt, uint256 endsAt, bytes32 root, address election);
   event LogElectionCount(address election);
   event LogElectionEnd(address election, uint256 blockNumber);
 
@@ -45,7 +45,7 @@ contract Chain is Ownable {
     );
 
     authorize(election);
-    LogElectionStart(_startsAt, _endsAt, election);
+    LogElectionStart(_startsAt, _endsAt, _root, election);
   }
 
   function electionCounted(address _electionAddress) public {
