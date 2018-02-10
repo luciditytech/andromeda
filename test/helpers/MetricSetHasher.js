@@ -1,5 +1,8 @@
+import Web3 from 'Web3';
 import leftPad from 'left-pad';
 import { isString, isNumber, forEach } from 'lodash';
+
+const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 
 function keccak256(...args) {
   var hexStart = '0x';

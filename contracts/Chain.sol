@@ -7,21 +7,25 @@ import "contracts/Election.sol";
 contract Chain is Ownable {
   uint256 public blockNumber;
   Block[] public blocks;
-  mapping(address => bool) authorized;
+  mapping(address => bool) public authorized;
 
   struct Block {
     uint256 number;
     address election;
-    bytes32[] campaignIds;
-    bytes32[] channelIds;
-    uint256[] impressions;
-    uint256[] clicks;
-    uint256[] conversions;
   }
 
   event LogElectionStart(uint256 startsAt, uint256 endsAt, bytes32 root, address election);
   event LogElectionCount(address election);
-  event LogElectionEnd(address election, uint256 blockNumber);
+
+  event LogElectionEnd(
+    address election,
+    uint256 blockNumber,
+    bytes32[] campaignIds,
+    bytes32[] channelIds,
+    uint256[] impressions,
+    uint256[] clicks,
+    uint256[] conversions
+  );
 
   function authorize(address _sender) public {
     require(tx.origin == owner);
@@ -67,17 +71,21 @@ contract Chain is Ownable {
     Block memory block = Block(
       {
         number: blockNumber,
-        election: _election,
-        campaignIds: _campaignIds,
-        channelIds: _channelIds,
-        impressions: _impressions,
-        clicks: _clicks,
-        conversions: _conversions
+        election: _election
       }
     );
 
     blocks.push(block);
     blockNumber += 1;
-    LogElectionEnd(_election, blockNumber - 1);
+
+    LogElectionEnd(
+      _election,
+      blockNumber - 1,
+      _campaignIds,
+      _channelIds,
+      _impresions,
+      _clicks,
+      _conversions
+    );
   }
 }
