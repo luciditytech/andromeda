@@ -13,12 +13,12 @@ contract Election is ReentrancyGuard {
   address[] public addresses;
   uint blockNumber;
   mapping(bytes32 => uint256) counts;
-  bytes32 previousRoot;
-  bytes32 root;
-  uint256 startsAt;
-  uint256 endsAt;
-  bool counted;
-  bool revealed;
+  bytes32 public previousRoot;
+  bytes32 public root;
+  uint256 public startsAt;
+  uint256 public endsAt;
+  bool public counted;
+  bool public revealed;
 
   struct Voter {
     bool voted;
@@ -98,7 +98,7 @@ contract Election is ReentrancyGuard {
     Voter sender = voters[msg.sender];
     require(sender.voted);
     require(sender.proposal == root);
-    bytes32 proof = hash(previousRoot, _campaignIds, _channelIds, _impressions, _clicks, _conversions);
+    bytes32 proof = hash(_campaignIds, _channelIds, _impressions, _clicks, _conversions);
     require(proof == sender.proposal);
 
     AbstractChain chain = AbstractChain(chainAddress);
@@ -117,14 +117,13 @@ contract Election is ReentrancyGuard {
   }
 
   function hash(
-    bytes32 _root,
     bytes32[] _campaignIds,
     bytes32[] _channelIds,
     uint256[] _impressions,
     uint256[] _clicks,
     uint256[] _conversions
-  ) public returns (bytes32) {
-    bytes32 proof = keccak256(_root);
+  ) public constant returns (bytes32) {
+    bytes32 proof = keccak256(previousRoot);
 
     for (uint256 i = 0; i < _campaignIds.length; i++) {
       proof = keccak256(
