@@ -83,7 +83,7 @@ contract Chain is Ownable {
       blockNumber - 1,
       _campaignIds,
       _channelIds,
-      _impresions,
+      _impressions,
       _clicks,
       _conversions
     );
