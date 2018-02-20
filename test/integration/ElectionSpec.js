@@ -107,57 +107,17 @@ contract('Election', (accounts) => {
           assert.equal(res.receipt.status, 1);
         });
 
-        describe('when the results are revealed', async () => {
-          let campaignIds;
-          let channelIds;
-          let impressions;
-          let clicks;
-          let conversions;
+        it('should mint a new block on the root chain', async () => {
+          await SpecHelper.mineBlock(block.add(new BN(3, 10)));
 
-          beforeEach(async () => {
-            let res = await abstraction
-              .count();
+          let res = await abstraction
+            .count();
 
-            campaignIds = _.map(rows, row => row['campaign_id']);
-            channelIds = _.map(rows, row => row['channel_id']);
-            impressions = _.map(rows, row => new BN(row['impressions'], 10));
-            clicks = _.map(rows, row => new BN(row['clicks'], 10));
-            conversions = _.map(rows, row => new BN(row['conversions'], 10));
-          });
+          let numberOfBlocks = await chain
+            .blockNumber
+            .call();
 
-          it('should not throw an exception', async () => {
-            await SpecHelper.mineBlock(block.add(new BN(3, 10)));
-
-            let res = await abstraction
-              .reveal(
-                campaignIds,
-                channelIds,
-                impressions,
-                clicks,
-                conversions
-              );
-
-            assert.equal(res.receipt.status, 1);
-          });
-
-          it('should mint a new block on the root chain', async () => {
-            await SpecHelper.mineBlock(block.add(new BN(3, 10)));
-
-            let res = await abstraction
-              .reveal(
-                campaignIds,
-                channelIds,
-                impressions,
-                clicks,
-                conversions
-              );
-
-            let numberOfBlocks = await chain
-              .blockNumber
-              .call();
-
-            assert(numberOfBlocks.toNumber(), 1);
-          });
+          assert(numberOfBlocks.toNumber(), 1);
         });
       });
     });

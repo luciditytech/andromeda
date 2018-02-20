@@ -15,17 +15,7 @@ contract Chain is Ownable {
   }
 
   event LogElectionStart(uint256 startsAt, uint256 endsAt, bytes32 root, address election);
-  event LogElectionCount(address election);
-
-  event LogElectionEnd(
-    address election,
-    uint256 blockNumber,
-    bytes32[] campaignIds,
-    bytes32[] channelIds,
-    uint256[] impressions,
-    uint256[] clicks,
-    uint256[] conversions
-  );
+  event LogElectionCount(address election, uint256 blockNumber);
 
   function authorize(address _sender) public {
     require(tx.origin == owner);
@@ -54,38 +44,17 @@ contract Chain is Ownable {
 
   function electionCounted(address _electionAddress) public {
     require(authorized[msg.sender]);
-    LogElectionCount(_electionAddress);
-  }
-
-   function electionEnded(
-     address _election,
-     bytes32 _newRoot,
-     bytes32[] _campaignIds,
-     bytes32[] _channelIds,
-     uint256[] _impressions,
-     uint256[] _clicks,
-     uint256[] _conversions
-  ) public {
-    require(authorized[msg.sender]);
 
     Block memory block = Block(
       {
         number: blockNumber,
-        election: _election
+        election: _electionAddress
       }
     );
 
     blocks.push(block);
     blockNumber += 1;
 
-    LogElectionEnd(
-      _election,
-      blockNumber - 1,
-      _campaignIds,
-      _channelIds,
-      _impressions,
-      _clicks,
-      _conversions
-    );
+    LogElectionCount(_electionAddress, blockNumber - 1);
   }
 }
