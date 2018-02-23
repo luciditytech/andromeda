@@ -12,9 +12,9 @@ contract Election is ReentrancyGuard {
   mapping(address => Voter) public voters;
   address[] public addresses;
   uint blockNumber;
-  mapping(bytes32 => uint256) counts;
+  mapping(uint256 => mapping(bytes32 => uint256)) counts;
   bytes32 public previousRoot;
-  bytes32 public root;
+  mapping(uint256 => bytes32) roots;
   uint256 public startsAt;
   uint256 public endsAt;
   bool public counted;
@@ -23,6 +23,7 @@ contract Election is ReentrancyGuard {
   struct Voter {
     bool voted;
     bytes32 proposal;
+    uint256 shard;
   }
 
   function Election(
@@ -53,11 +54,12 @@ contract Election is ReentrancyGuard {
     require(!sender.voted);
 
     Registrations registry = Registrations(registryAddress);
-    var (id, location, created, balance) = registry.verifiers(msg.sender);
+    var (id, location, created, balance, shard) = registry.verifiers(msg.sender);
     require(created);
 
     sender.proposal = _proposal;
     sender.voted = true;
+    sender.shard = shard;
     addresses.push(msg.sender);
   }
 
@@ -66,20 +68,18 @@ contract Election is ReentrancyGuard {
     require(block.number - 2 > blockNumber);
     require(!counted);
 
-    bytes32 newRoot;
-    uint256 max = 0;
+    uint256[] maxs;
 
     for (uint256 i = 0; i < addresses.length; i++) {
       Voter voter = voters[addresses[i]];
-      counts[voter.proposal] += 1;
+      counts[voter.shard][voter.proposal] += 1;
 
-      if (counts[voter.proposal] >= max) {
-        newRoot = voter.proposal;
-        max = counts[voter.proposal];
+      if (counts[voter.shard][voter.proposal] >= maxs[voter.shard]) {
+        roots[voter.shard] = voter.proposal;
+        maxs[voter.shard] = counts[voter.shard][voter.proposal];
       }
     }
 
-    root = newRoot;
     counted = true;
 
     AbstractChain chain = AbstractChain(chainAddress);
