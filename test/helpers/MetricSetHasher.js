@@ -1,4 +1,4 @@
-import Web3 from 'Web3';
+import Web3 from 'web3';
 import leftPad from 'left-pad';
 import { isString, isNumber, forEach } from 'lodash';
 
