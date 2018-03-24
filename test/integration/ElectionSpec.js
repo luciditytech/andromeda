@@ -11,6 +11,7 @@ import EthQuery from 'ethjs-query';
 
 import SpecHelper from '../SpecHelper.js';
 import MetricSetHasher from '../helpers/MetricSetHasher.js';
+import Hasher from '../helpers/Hasher.js';
 
 const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
 const ethQuery = new EthQuery(new HttpProvider('http://localhost:8545'));
@@ -24,7 +25,11 @@ contract('Election', (accounts) => {
     let registry;
     let startsAt = 1517196184;
     let endsAt = 1517196184;
+    let votingTime = 120;
+    let revealTime = 120;
     let proposal;
+    let blindedProposal;
+    let secret = Hasher.keccak256(sha256.hex('secret'));
 
     beforeEach(async () => {
       registry = await Registrations.new();
@@ -43,7 +48,9 @@ contract('Election', (accounts) => {
         block,
         root,
         startsAt,
-        endsAt
+        endsAt,
+        votingTime,
+        revealTime
       );
 
       await chain.authorize(abstraction.address);
@@ -68,14 +75,57 @@ contract('Election', (accounts) => {
       ];
 
       beforeEach(async () => {
-        await SpecHelper.mineBlock(block.add(new BN(1, 10)));
-
         proposal = MetricSetHasher.call(root, rows);
+        blindedProposal = Hasher.keccak256(proposal, secret);
 
         await abstraction
           .vote(
-            proposal
+            blindedProposal
           );
+      });
+
+      it('should have submitted the expected proposal', async () => {
+        let voter = await abstraction.voters.call(accounts[0]);
+        let storedBlindedProposal = voter[1];
+        assert.equal(blindedProposal, storedBlindedProposal);
+      });
+
+      describe('when revealing our proposal', async () => {
+        beforeEach(async () => {
+          await SpecHelper.moveForward(votingTime + 1);
+
+          await abstraction
+            .reveal(
+              proposal,
+              secret
+            );
+        });
+
+        describe('when the election is counted', async () => {
+          beforeEach(async () => {
+            await SpecHelper.moveForward(revealTime + votingTime + 1);
+          });
+
+          it('should not throw an exception', async () => {
+            let res = await abstraction
+              .count();
+
+            assert.equal(res.receipt.status, 1);
+          });
+
+          it('should mint a new side-chain block on the root chain', async () => {
+            await SpecHelper.mineBlock(block.add(new BN(3, 10)));
+
+            let res = await abstraction
+              .count();
+
+            let numberOfBlocks = await chain
+              .blockNumber
+              .call();
+
+            assert(numberOfBlocks.toNumber(), 1);
+          });
+        });
       });
 
       describe('when a verifier tries to vote twice', async () => {
@@ -92,32 +142,6 @@ contract('Election', (accounts) => {
           }
 
           assert.isDefined(exception);
-        });
-      });
-
-      describe('when the election is counted', async () => {
-        beforeEach(async () => {
-          await SpecHelper.mineBlock(block.add(new BN(2, 10)));
-        });
-
-        it('should not throw an exception', async () => {
-          let res = await abstraction
-            .count();
-
-          assert.equal(res.receipt.status, 1);
-        });
-
-        it('should mint a new block on the root chain', async () => {
-          await SpecHelper.mineBlock(block.add(new BN(3, 10)));
-
-          let res = await abstraction
-            .count();
-
-          let numberOfBlocks = await chain
-            .blockNumber
-            .call();
-
-          assert(numberOfBlocks.toNumber(), 1);
         });
       });
     });

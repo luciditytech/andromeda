@@ -26,7 +26,9 @@ contract Chain is Ownable {
     address _registryAddress,
     uint256 _startsAt,
     uint256 _endsAt,
-    bytes32 _root
+    bytes32 _root,
+    uint256 _votingTime,
+    uint256 _revealTime
   ) public onlyOwner {
     Election election = new Election(
       _registryAddress,
@@ -35,7 +37,9 @@ contract Chain is Ownable {
       block.number,
       _root,
       _startsAt,
-      _endsAt
+      _endsAt,
+      _votingTime,
+      _revealTime
     );
 
     authorize(election);
