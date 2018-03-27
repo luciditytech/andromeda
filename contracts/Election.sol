@@ -20,8 +20,8 @@ contract Election is ReentrancyGuard {
   uint256 public endsAt;
   bool public counted;
   bool public revealed;
-  uint256 votingEnd;
-  uint256 revealEnd;
+  uint256 public votingEnd;
+  uint256 public revealEnd;
 
   struct Voter {
     bool voted;
