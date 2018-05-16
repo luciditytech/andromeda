@@ -31,8 +31,8 @@
     "jssha": "^2.3.1",
     "left-pad": "^1.2.0",
     "lodash": "^4.17.4",
-    "sancus": "file:../sancus",
-    "token-sale-contracts": "file:../token-sale-contracts",
+    "pokedex": "git@github.com:luciditytech/pokedex.git#develop",
+    "token-sale-contracts": "git@github.com:luciditytech/token-sale-contracts.git#develop",
     "truffle-hdwallet-provider": "0.0.3",
     "web3-js": "^1.0.0-beta.26",
     "zeppelin-solidity": "^1.5.0"

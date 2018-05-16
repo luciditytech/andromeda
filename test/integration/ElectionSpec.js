@@ -1,6 +1,6 @@
 const Election = artifacts.require('Election');
 const Chain = artifacts.require('Chain');
-const Registrations = artifacts.require('Registrations');
+const VerifierRegistry = artifacts.require('VerifierRegistry');
 
 import _ from 'lodash';
 import BN from 'bn.js';
@@ -32,7 +32,7 @@ contract('Election', (accounts) => {
     let secret = Hasher.keccak256(sha256.hex('secret'));
 
     beforeEach(async () => {
-      registry = await Registrations.new();
+      registry = await VerifierRegistry.new('0x0');
       chain = await Chain.new();
 
       await registry

@@ -1,8 +1,8 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.18;
 
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
-import "sancus/contracts/Registrations.sol";
+import "pokedex/contracts/VerifierRegistry.sol";
 import "contracts/AbstractChain.sol";
 
 contract Election is ReentrancyGuard {
@@ -66,16 +66,17 @@ contract Election is ReentrancyGuard {
    */
   function vote(bytes32 _blindedProposal) onlyBefore(votingEnd) external nonReentrant {
     Voter sender = voters[msg.sender];
-    require(!sender.voted);
-    require(!blindedProposals[_blindedProposal]);
+    //require(!sender.voted);
+    //require(!blindedProposals[_blindedProposal]);
 
-    Registrations registry = Registrations(registryAddress);
+    VerifierRegistry registry = VerifierRegistry(registryAddress);
     var (id, location, created, balance, shard) = registry.verifiers(msg.sender);
-    require(created);
+    //require(created);
 
     sender.blindedProposal = _blindedProposal;
     sender.voted = true;
     sender.shard = shard;
+    blindedProposals[_blindedProposal] = true;
     addresses.push(msg.sender);
   }
 
