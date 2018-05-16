@@ -66,12 +66,12 @@ contract Election is ReentrancyGuard {
    */
   function vote(bytes32 _blindedProposal) onlyBefore(votingEnd) external nonReentrant {
     Voter sender = voters[msg.sender];
-    //require(!sender.voted);
-    //require(!blindedProposals[_blindedProposal]);
+    require(!sender.voted);
+    require(!blindedProposals[_blindedProposal]);
 
     VerifierRegistry registry = VerifierRegistry(registryAddress);
     var (id, location, created, balance, shard) = registry.verifiers(msg.sender);
-    //require(created);
+    require(created);
 
     sender.blindedProposal = _blindedProposal;
     sender.voted = true;
