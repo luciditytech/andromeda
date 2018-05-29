@@ -12,10 +12,10 @@ contract Election is ReentrancyGuard {
   mapping(address => Voter) public voters;
   address[] public addresses;
   mapping(bytes32 => bool) public blindedProposals;
-  uint blockNumber;
-  mapping(uint256 => mapping(bytes32 => uint256)) counts;
+  uint public blockNumber;
+  mapping(uint256 => mapping(bytes32 => uint256)) public counts;
   bytes32 public previousRoot;
-  mapping(uint256 => bytes32) roots;
+  mapping(uint256 => bytes32) public roots;
   uint256 public startsAt;
   uint256 public endsAt;
   bool public counted;
