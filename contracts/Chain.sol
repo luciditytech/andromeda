@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.24;
 
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
@@ -43,22 +43,22 @@ contract Chain is Ownable {
     );
 
     authorize(election);
-    LogElectionStart(_startsAt, _endsAt, _root, election);
+    emit LogElectionStart(_startsAt, _endsAt, _root, election);
   }
 
   function electionCounted(address _electionAddress) public {
     require(authorized[msg.sender]);
 
-    Block memory block = Block(
+    Block memory newBlock = Block(
       {
         number: blockNumber,
         election: _electionAddress
       }
     );
 
-    blocks.push(block);
+    blocks.push(newBlock);
     blockNumber += 1;
 
-    LogElectionCount(_electionAddress, blockNumber - 1);
+    emit LogElectionCount(_electionAddress, blockNumber - 1);
   }
 }
