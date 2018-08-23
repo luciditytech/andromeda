@@ -43,14 +43,16 @@ TODO
 1. `npm install`
 1. `git hf init`
 
-### Launch testrpc
+### Launch RPC client
 
 ```
-testrpc \
-  --account="0xb44d5ae914d16e93972f70a4a73d87420e0150173bef79d9945b736d69825247,10000000000000000000000000" \
-  --account="0x72fc90dc0ec9bc20efd2c47791605406564a6b25b3b479bca53134fe6c2dd2aa,10000000000000000000000000" \
-  --gasPrice 40000000000
+ganache-cli
 ```
+
+#### Test with code coverage
+
+Solidity coverage is configured to automatically run testrpc on port 8545.
+Please remember to turn off other RPC client before you go for this test. 
 
 ### Compiling and migrating smart contracts
 
@@ -61,6 +63,13 @@ testrpc \
 
 1. `truffle test`
 1. With code coverage: `./node_modules/.bin/solidity-coverage`
+
+If you experience this issue during coverage test:
+```
+Error: ENOENT: no such file or directory, open './allFiredEvents'
+```
+create file `touch ./allFiredEvents` each time before you run test command, it should help.  
+ 
 
 ### Deployment
 

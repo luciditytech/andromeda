@@ -1,3 +1,8 @@
+// turn off/on console.log messages
+const debug = 0;
+
+const rpcProvider = 'http://localhost:8545';
+
 const Election = artifacts.require('Election');
 const Chain = artifacts.require('Chain');
 const VerifierRegistry = artifacts.require('VerifierRegistry');
@@ -12,12 +17,21 @@ import EthQuery from 'ethjs-query';
 import SpecHelper from '../SpecHelper.js';
 import MetricSetHasher from '../helpers/MetricSetHasher.js';
 import Hasher from '../helpers/Hasher.js';
+import formatVerifier from '../helpers/Verifier';
 
-const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
-const ethQuery = new EthQuery(new HttpProvider('http://localhost:8545'));
+import samples from '../samples/rows';
+
+const ElectionUtil = require('../proxy-contracts/proxyElection');
+const proxyElection = ElectionUtil();
+
+
+const ethRPC = new EthRPC(new HttpProvider(rpcProvider));
+const ethQuery = new EthQuery(new HttpProvider(rpcProvider));
 
 contract('Election', (accounts) => {
   describe('when an election takes place', () => {
+
+    // this will be instance of Election contract
     let abstraction;
     let block;
     let root = sha256.hex('root').substring(0, 32);
@@ -30,13 +44,17 @@ contract('Election', (accounts) => {
     let proposal;
     let blindedProposal;
     let secret = Hasher.keccak256(sha256.hex('secret'));
+    let verifier;
 
     beforeEach(async () => {
       registry = await VerifierRegistry.new('0x0');
       chain = await Chain.new();
 
-      await registry
-        .create('192.168.1.1');
+      await registry.create('192.168.1.1');
+
+      let res = await registry.verifiers.call(accounts[0]);
+      verifier = formatVerifier.format(res);
+      debug && console.log(verifier);
 
       block = await ethQuery.blockNumber();
       block = block.add(new BN(1, 10));
@@ -44,7 +62,6 @@ contract('Election', (accounts) => {
       abstraction = await Election.new(
         registry.address,
         chain.address,
-        accounts[0],
         block,
         root,
         startsAt,
@@ -53,71 +70,56 @@ contract('Election', (accounts) => {
         revealTime
       );
 
-      await chain.authorize(abstraction.address);
+      proxyElection.setInstanceVar(abstraction)
+      proxyElection.setFromVar(accounts[0])
+
+      await chain.authorize(proxyElection.instance.address);
+
     });
 
     describe('when valid votes are given', async () => {
-      let rows = [
-        {
-          "campaign_id": sha256.hex("campaign1").substring(0, 32),
-          "channel_id": sha256.hex("channel1").substring(0, 32),
-          "impressions": 100,
-          "clicks": 300,
-          "conversions": 500
-        },
-        {
-          "campaign_id": sha256.hex("campaign2").substring(0, 32),
-          "channel_id": sha256.hex("channel2").substring(0, 32),
-          "impressions": 100,
-          "clicks": 300,
-          "conversions": 500
-        }
-      ];
+
 
       beforeEach(async () => {
-        proposal = MetricSetHasher.call(root, rows);
+        proposal = MetricSetHasher.call(root, samples.rows);
         blindedProposal = Hasher.keccak256(proposal, secret);
 
-        await abstraction
-          .vote(
-            blindedProposal
-          );
-      });
+        await proxyElection.vote(blindedProposal);
 
-      it('should have submitted the expected proposal', async () => {
-        let voter = await abstraction.voters.call(accounts[0]);
-        let storedBlindedProposal = voter[1];
-        assert.equal(blindedProposal, storedBlindedProposal);
       });
 
       describe('when revealing our proposal', async () => {
         beforeEach(async () => {
           await SpecHelper.moveForward(votingTime + 1);
 
-          await abstraction
-            .reveal(
-              proposal,
-              secret
-            );
+          await proxyElection.reveal(proposal,secret);
         });
 
-        describe('when the election is counted', async () => {
+
+        it('should became a winner, because it is a first and only vote', async () => {
+
+            let winner = await proxyElection.roots(verifier.shard);
+            assert.strictEqual(winner, proposal);
+        });
+
+        it('should throw an exception when informAboutEnd call before end of election', async () => {
+            await proxyElection.informAboutEnd({}, true);
+        });
+
+
+        describe('when the election is over', async () => {
           beforeEach(async () => {
             await SpecHelper.moveForward(revealTime + votingTime + 1);
           });
 
-          it('should not throw an exception', async () => {
-            let res = await abstraction
-              .count();
-
-            assert.equal(res.receipt.status, 1);
+          it('should not throw an exception when informAboutEnd', async () => {
+            await proxyElection.informAboutEnd();
           });
 
           it('should mint a new side-chain block on the root chain', async () => {
             await SpecHelper.mineBlock(block.add(new BN(3, 10)));
 
-            let res = await abstraction
-              .count();
+            await proxyElection.informAboutEnd();
 
             let numberOfBlocks = await chain
               .blockNumber
@@ -130,18 +132,9 @@ contract('Election', (accounts) => {
 
       describe('when a verifier tries to vote twice', async () => {
         it('should throw an exception', async () => {
-          let exception = null;
 
-          try {
-            await abstraction
-              .vote(
-                proposal
-              );
-          } catch (e) {
-            exception = e;
-          }
+          await proxyElection.vote(proposal, {}, true);
 
-          assert.isDefined(exception);
         });
       });
     });
