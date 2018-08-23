@@ -18,7 +18,7 @@ contract Chain is Ownable {
   event LogElectionCount(address election, uint256 blockNumber);
 
   function authorize(address _sender) public {
-    require(tx.origin == owner);
+    require(msg.sender == owner);
     authorized[_sender] = true;
   }
 
@@ -33,7 +33,6 @@ contract Chain is Ownable {
     Election election = new Election(
       _registryAddress,
       this,
-      owner,
       block.number,
       _root,
       _startsAt,

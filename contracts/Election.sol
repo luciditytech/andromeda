@@ -13,15 +13,29 @@ contract Election is ReentrancyGuard {
   address[] public addresses;
   mapping(bytes32 => bool) public blindedProposals;
   uint public blockNumber;
+
+  /// @dev shard => proposal => count
   mapping(uint256 => mapping(bytes32 => uint256)) public counts;
+
+  /// @dev this is where we keep information about real-time votes counting
+  /// base on this, we will be updating `roots` while counting votes
+  /// so this is needed for selecting a winner
+  /// mapping does: shard => max
+  mapping(uint256 => uint256) private maxsVotes;
+
   bytes32 public previousRoot;
+
+  /// @dev shard => proposal - here we store winning proposals
   mapping(uint256 => bytes32) public roots;
   uint256 public startsAt;
   uint256 public endsAt;
-  bool public counted;
+
   bool public revealed;
   uint256 public votingEnd;
   uint256 public revealEnd;
+
+  /// @dev prevent calling `informAboutEnd()` twice
+  bool informAboutEndNonce;
 
   struct Voter {
     bool voted;
@@ -34,10 +48,14 @@ contract Election is ReentrancyGuard {
   modifier onlyBefore(uint _time) { if (now >= _time) revert(); _; }
   modifier onlyAfter(uint _time) { if (now <= _time) revert(); _; }
 
+  event LogVote(address indexed sender, bytes32 blindedProposal, uint256 shard);
+  event LogReveal(address indexed sender, bytes32 proposal);
+  event LogUpdateCounters(uint256 shard, bytes32 proposal, uint256 counts, bool newWinner);
+  event LogInformAboutEnd(address indexed sender, bool informed);
+
   constructor (
     address _registryAddress,
     address _chainAddress,
-    address _chairperson,
     uint _blockNumber,
     bytes32 _previousRoot,
     uint256 _startsAt,
@@ -47,7 +65,6 @@ contract Election is ReentrancyGuard {
   ) public {
     registryAddress = _registryAddress;
     chainAddress = _chainAddress;
-    chairperson = _chairperson;
     blockNumber = _blockNumber;
     previousRoot = _previousRoot;
     startsAt = _startsAt;
@@ -82,6 +99,8 @@ contract Election is ReentrancyGuard {
     sender.shard = shard;
     blindedProposals[_blindedProposal] = true;
     addresses.push(msg.sender);
+
+    emit LogVote(msg.sender, _blindedProposal, shard);
   }
 
   /*
@@ -100,31 +119,63 @@ contract Election is ReentrancyGuard {
 
     sender.proposal = _proposal;
     sender.revealed = true;
+    emit LogReveal(msg.sender, _proposal);
+
+    /// @dev once we have a valid reveal, we can update our counters
+    _updateCounters(sender.shard, _proposal);
+
   }
 
-  /*
-   * once all proposals have been revealed we can go count them and determine the winners
-   */
-  function count() onlyAfter(revealEnd) external nonReentrant {
-    require(msg.sender == chairperson);
-    require(!counted);
+  /// @dev after reveal each vote, we need to update information about statistics/maxs of the election
+  /// this function needs to be called ech time we successfully reveal a vote
+  function _updateCounters(uint256 _shard, bytes32 _proposal)
+  private {
 
-    uint256[] maxs;
+    counts[_shard][_proposal] += 1;
+    uint256 shardProposals = counts[_shard][_proposal];
+    bool newWinner;
 
-    for (uint256 i = 0; i < addresses.length; i++) {
-      Voter memory voter = voters[addresses[i]];
-      if (!voter.revealed) { continue; }
-      counts[voter.shard][voter.proposal] += 1;
+    /// @dev unless it is not important for some reason, lets use `>` without `=` in this condition
+    /// when we don't access equal values we gain two important things:
+    /// 1. we save a lot of gas: we do not change state each time we have equal result
+    /// 2. we encourage voters to vote asap, because in case of equal results, winner is the first one
+    if (shardProposals > maxsVotes[_shard]) {
 
-      if (counts[voter.shard][voter.proposal] >= maxs[voter.shard]) {
-        roots[voter.shard] = voter.proposal;
-        maxs[voter.shard] = counts[voter.shard][voter.proposal];
+      // TODO once we know which of below scenarios is more likely to happen, we can adjust the code:
+      // scenario 1 - in most cases winner will have much more votes that others
+      // scenario 2 - in most cases election will be head-to-head
+      // for (1) we might save gas, if we first check, if there is any change to winning proposal
+      // for (2) we might save save gas if we do not check, just write
+      if (roots[_shard] != _proposal) {
+        roots[_shard] = _proposal;
+        /// @dev flag for event
+        newWinner = true;
       }
+
+      /// @dev save new maximum
+      maxsVotes[_shard] = shardProposals;
     }
 
-    counted = true;
+    emit LogUpdateCounters(_shard, _proposal, shardProposals, newWinner);
+  }
+
+
+  /// @dev once voting is over we can send an information to `AbstractChain`
+  function informAboutEnd()
+  onlyAfter(revealEnd)
+  external
+  nonReentrant
+  returns (bool) {
+
+    require(!informAboutEndNonce);
+    informAboutEndNonce = true;
 
     AbstractChain chain = AbstractChain(chainAddress);
     chain.electionCounted(this);
+
+    emit LogInformAboutEnd(msg.sender, true);
+
+    return true;
   }
+
 }

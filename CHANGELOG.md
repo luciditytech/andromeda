@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make `blockNumber`, `counts` and `roots` state variables publicly readable
 - update of contract code to be consistent with Solidity 0.4.24: 
 warnings, deprecations and shadows were fixed/removed.
+- merge `Election.reveal()` and `Election.count()`
 
 
 ## [0.1.0] - 2018-04-12
