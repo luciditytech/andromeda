@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
@@ -31,10 +31,10 @@ contract Election is ReentrancyGuard {
     bool revealed;
   }
 
-  modifier onlyBefore(uint _time) { if (now >= _time) throw; _; }
-  modifier onlyAfter(uint _time) { if (now <= _time) throw; _; }
+  modifier onlyBefore(uint _time) { if (now >= _time) revert(); _; }
+  modifier onlyAfter(uint _time) { if (now <= _time) revert(); _; }
 
-  function Election(
+  constructor (
     address _registryAddress,
     address _chainAddress,
     address _chairperson,
@@ -44,7 +44,7 @@ contract Election is ReentrancyGuard {
     uint256 _endsAt,
     uint256 _votingTime,
     uint _revealTime
-  ) {
+  ) public {
     registryAddress = _registryAddress;
     chainAddress = _chainAddress;
     chairperson = _chairperson;
@@ -65,12 +65,16 @@ contract Election is ReentrancyGuard {
    * each proposal is unique to avoid proposal peeking
    */
   function vote(bytes32 _blindedProposal) onlyBefore(votingEnd) external nonReentrant {
-    Voter sender = voters[msg.sender];
+    Voter storage sender = voters[msg.sender];
     require(!sender.voted);
     require(!blindedProposals[_blindedProposal]);
 
     VerifierRegistry registry = VerifierRegistry(registryAddress);
-    var (id, location, created, balance, shard) = registry.verifiers(msg.sender);
+
+    bool created;
+    uint256 shard;
+
+    ( , , created, , shard) = registry.verifiers(msg.sender);
     require(created);
 
     sender.blindedProposal = _blindedProposal;
@@ -87,11 +91,11 @@ contract Election is ReentrancyGuard {
     onlyAfter(votingEnd)
     onlyBefore(revealEnd)
     external nonReentrant {
-    Voter sender = voters[msg.sender];
+    Voter storage sender = voters[msg.sender];
     require(sender.voted);
     require(!sender.revealed);
 
-    var proof = keccak256(_proposal, _secret);
+    bytes32 proof = keccak256(abi.encodePacked(_proposal, _secret));
     require(sender.blindedProposal == proof);
 
     sender.proposal = _proposal;
@@ -108,7 +112,7 @@ contract Election is ReentrancyGuard {
     uint256[] maxs;
 
     for (uint256 i = 0; i < addresses.length; i++) {
-      Voter voter = voters[addresses[i]];
+      Voter memory voter = voters[addresses[i]];
       if (!voter.revealed) { continue; }
       counts[voter.shard][voter.proposal] += 1;
 

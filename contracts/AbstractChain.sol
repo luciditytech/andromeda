@@ -1,3 +1,5 @@
+pragma solidity ^0.4.24;
+
 contract AbstractChain {
   function electionEnded(
      address _election,
