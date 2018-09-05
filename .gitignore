@@ -5,3 +5,9 @@ node_modules/
 /build
 .truffle-solidity-loader
 .idea
+
+coverage
+coverage.json
+coverageEnv
+
+.env

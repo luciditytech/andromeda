@@ -7,7 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "scripts/test.sh",
+    "coverage": "./node_modules/.bin/solidity-coverage",
+    "console": "truffle console",
+    "lint:solium": "solium --dir .",
+    "lint:js": "eslint ./test/**/*.js",
+    "lint": "npm run lint:js && npm run lint:solium"
   },
   "repository": {
     "type": "git",
@@ -23,27 +28,29 @@
     "bip39": "2.5.0",
     "bn.js": "4.11.8",
     "ethereumjs-abi": "^0.6.5",
-    "ethjs-provider-http": "0.1.6",
     "ethjs-query": "0.3.8",
-    "ethjs-rpc": "0.2.0",
     "js-sha1": "^0.6.0",
     "js-sha256": "^0.9.0",
     "jssha": "^2.3.1",
-    "left-pad": "^1.3.0",
-    "lodash": "^4.17.10",
     "pokedex": "git@github.com:luciditytech/pokedex.git#develop",
     "token-sale-contracts": "git@github.com:luciditytech/token-sale-contracts.git#develop",
     "truffle-hdwallet-provider": "0.0.6",
-    "web3-js": "^1.0.5-beta.26",
     "zeppelin-solidity": "^1.12.0"
   },
   "devDependencies": {
     "babel-polyfill": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-stage-2": "^6.24.1",
-    "babel-preset-stage-3": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
     "babel-register": "^6.26.0",
-    "npm": "^6.4.0",
-    "solidity-coverage": "^0.5.7"
+    "chai": "^4.1.2",
+    "eslint": "^4.18.2",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.9.0",
+    "ganache-cli": "^6.1.8",
+    "lodash": "^4.17.10",
+    "solidity-coverage": "^0.5.5",
+    "solium": "^1.1.8",
+    "truffle": "^4.1.14",
+    "web3-eth": "^1.0.0-beta.36",
+    "web3-utils": "^1.0.0-beta.36"
   }
 }
