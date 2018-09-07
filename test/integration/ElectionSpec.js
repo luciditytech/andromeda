@@ -1,20 +1,19 @@
+/* eslint-disable */
+import _ from 'lodash';
+import BN from 'bn.js';
+import sha256 from 'js-sha256';
+import web3Utils from 'web3-utils';
+
+import { moveForward, mineBlock } from '../helpers/SpecHelper';
+import metricSetHasher from '../helpers/MetricSetHasher';
+import Web3Eth from 'web3-eth';
+
+const web3Eth = new Web3Eth(web3.currentProvider);
+
 const Election = artifacts.require('Election');
 const Chain = artifacts.require('Chain');
 const VerifierRegistry = artifacts.require('VerifierRegistry');
 
-import _ from 'lodash';
-import BN from 'bn.js';
-import sha256 from 'js-sha256';
-import HttpProvider from 'ethjs-provider-http';
-import EthRPC from 'ethjs-rpc';
-import EthQuery from 'ethjs-query';
-
-import SpecHelper from '../SpecHelper.js';
-import MetricSetHasher from '../helpers/MetricSetHasher.js';
-import Hasher from '../helpers/Hasher.js';
-
-const ethRPC = new EthRPC(new HttpProvider('http://localhost:8545'));
-const ethQuery = new EthQuery(new HttpProvider('http://localhost:8545'));
 
 contract('Election', (accounts) => {
   describe('when an election takes place', () => {
@@ -29,7 +28,7 @@ contract('Election', (accounts) => {
     let revealTime = 120;
     let proposal;
     let blindedProposal;
-    let secret = Hasher.keccak256(sha256.hex('secret'));
+    let secret = web3Utils.soliditySha3(sha256.hex('secret'));
 
     beforeEach(async () => {
       registry = await VerifierRegistry.new('0x0');
@@ -38,7 +37,8 @@ contract('Election', (accounts) => {
       await registry
         .create('192.168.1.1');
 
-      block = await ethQuery.blockNumber();
+      block = await web3Eth.getBlockNumber();
+      block = new BN(block, 10);
       block = block.add(new BN(1, 10));
 
       abstraction = await Election.new(
@@ -75,8 +75,8 @@ contract('Election', (accounts) => {
       ];
 
       beforeEach(async () => {
-        proposal = MetricSetHasher.call(root, rows);
-        blindedProposal = Hasher.keccak256(proposal, secret);
+        proposal = metricSetHasher(root, rows);
+        blindedProposal = web3Utils.soliditySha3(proposal, secret);
 
         await abstraction
           .vote(
@@ -92,7 +92,7 @@ contract('Election', (accounts) => {
 
       describe('when revealing our proposal', async () => {
         beforeEach(async () => {
-          await SpecHelper.moveForward(votingTime + 1);
+          await moveForward(votingTime + 1);
 
           await abstraction
             .reveal(
@@ -103,7 +103,7 @@ contract('Election', (accounts) => {
 
         describe('when the election is counted', async () => {
           beforeEach(async () => {
-            await SpecHelper.moveForward(revealTime + votingTime + 1);
+            await moveForward(revealTime + votingTime + 1);
           });
 
           it('should not throw an exception', async () => {
@@ -114,7 +114,7 @@ contract('Election', (accounts) => {
           });
 
           it('should mint a new side-chain block on the root chain', async () => {
-            await SpecHelper.mineBlock(block.add(new BN(3, 10)));
+            await mineBlock(block.add(new BN(3, 10)));
 
             let res = await abstraction
               .count();

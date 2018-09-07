@@ -51,8 +51,8 @@ contract Chain is Ownable {
 
     Block memory newBlock = Block(
       {
-        number: blockNumber,
-        election: _electionAddress
+      number: blockNumber,
+      election: _electionAddress
       }
     );
 
