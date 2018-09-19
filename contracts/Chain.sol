@@ -93,10 +93,6 @@ contract Chain is ChainConfig, ReentrancyGuard {
     uint256 shard;
     (created, balance, shard) = _getVerifierInfo(msg.sender);
     require(created, "verifier is not in the registry");
-
-    // TODO - remove below line in real product!
-    if (balance == 0) balance = 1 + (uint8(msg.sender) >> 5); // balance simulation for testing
-
     require(balance > 0, "verifier has no right to propose");
 
 
