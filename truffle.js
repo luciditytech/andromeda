@@ -32,4 +32,13 @@ module.exports = {
       network_id: '*',
     },
   },
+  mocha: {
+    // this option is causing an error: invalid reporter "eth-gas-reporter", when run `npm run test`
+    // if you want to see gas usage i.e. when you executing `TestGas.js`, uncomment it
+    // reporter: 'eth-gas-reporter',
+    reporterOptions: {
+      currency: 'USD',
+      gasPrice: 21 // gwei
+    }
+  }
 };
