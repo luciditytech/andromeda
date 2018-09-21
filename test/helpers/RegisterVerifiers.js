@@ -45,7 +45,7 @@ async function registerVerifiers(regOwner, verifiersAddr) {
     });
     await Promise.all(mapResults);
   } catch (e) {
-    // verifier is probably registeres if create failing
+    // verifier is probably registered already if create failing
     // console.log(e);
     // throw new Error('[verifiers registration] create fail');
   }

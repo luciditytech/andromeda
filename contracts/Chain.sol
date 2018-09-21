@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
-/// TODO create interface for `VerifierRegistry.sol`, using interface will save us gas.
 import "pokedex/contracts/VerifierRegistry.sol";
 import "./ChainConfig.sol";
 
@@ -52,8 +51,7 @@ contract Chain is ChainConfig, ReentrancyGuard {
     // also storing keys is more gas consuming so... I made decision to stay with mapping and never delete history
     mapping(uint256 => mapping(bytes32 => uint256)) counts;
 
-    // array of all verifiers who proposed
-    address[] addresses;
+    address[] verifierAddresses;
   }
 
   /// @dev blockHeight => Block - results of each elections will be saved here: one block (array element) per election
@@ -136,7 +134,7 @@ contract Chain is ChainConfig, ReentrancyGuard {
     voter.proposal = _proposal;
     _updateCounters(voter.shard, _proposal);
 
-    blocks[blockHeight].addresses.push(msg.sender);
+    blocks[blockHeight].verifierAddresses.push(msg.sender);
 
     emit LogReveal(msg.sender, blockHeight, _proposal);
 
@@ -216,11 +214,11 @@ contract Chain is ChainConfig, ReentrancyGuard {
   }
 
   function getBlockAddress(uint256 _blockHeight, uint256 _i) external view returns (address) {
-    return blocks[_blockHeight].addresses[_i];
+    return blocks[_blockHeight].verifierAddresses[_i];
   }
 
   function getBlockAddressCount(uint256 _blockHeight) external view returns (uint256) {
-    return blocks[_blockHeight].addresses.length;
+    return blocks[_blockHeight].verifierAddresses.length;
   }
 
 }

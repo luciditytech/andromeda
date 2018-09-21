@@ -1,12 +1,10 @@
+const fs = require('fs');
+const Chain = artifacts.require("./Chain.sol");
+const VerifierRegistry = artifacts.require('VerifierRegistry');
 
-var Chain = artifacts.require("./Chain.sol");
+module.exports = function(deployer, network) {
 
-
-module.exports = async function(deployer, network, accounts) {
-
-  let accountsNeeded = 3; // 0 as owner and rest (at least 2) as verifiers
-  if(accounts.length < accountsNeeded) throw 'we need at least '+ accountsNeeded +' accounts to perform tests';
-
+  let config;
 
   if (
     network === 'development' ||
@@ -15,24 +13,22 @@ module.exports = async function(deployer, network, accounts) {
     network === 'ganache'
   ) {
     config = JSON.parse(fs.readFileSync('./config/development.json'));
-
-    wallet = accounts[0];
-
-    deployer.deploy(
-      HumanStandardToken,
-      config.HumanStandardToken.total,
-      config.HumanStandardToken.name,
-      config.HumanStandardToken.decimals,
-      config.HumanStandardToken.symbol,
-    );
   } else {
-    config = JSON.parse(fs.readFileSync('./config/production.json'));
-
-    wallet = config['wallet'];
+    throw new Error('Security check! Are you sure you want to deploy to live? If so, please comment out this line.');
+    // config = JSON.parse(fs.readFileSync('./config/production.json'));
+    // wallet = config['wallet'];
   }
 
-  let registry = await VerifierRegistry.deployed();
+  console.log('Deploying to:', network);
 
-  deployer.deploy(Chain, registry.address, config.Chain.blocksPerPhase);
-
+  VerifierRegistry.deployed()
+    .then(registry => {
+      return deployer.deploy(Chain, registry.address, config.Chain.blocksPerPhase);
+    })
+    .then(chain => {
+      console.log('YAY! Chain address:', chain.address);
+    })
+    .catch(e => {
+      console.log(e.message);
+    });
 };
