@@ -1,31 +1,26 @@
-# Andromeda Smart Contracts
+# Andromeda
 
-A collection of contracts used for reaching off-chain consensus for marketing analytics
-and distributing payments to participating verifiers.
+**Generalized On-Chain Proof-of-Stake Consensus**
 
-## TODO
-- in the future we probably need to add another roots to `Election struct Block {...}` 
-i.e. for balances.
-- create interface for `VerifierRegistry.sol`, so we can use it in `Chain.sol`. 
-Using interface will save us gas.
+![Saint Seiya Shun](https://s3.amazonaws.com/cdn.lucidity.tech/images/andromeda3.gif "Saint Seiya Shun")
 
 ## Overview
+This repository is a collection of smart contracts to launch Sidechains which can store consensus-driven blocks of information on the Ethereum blockchain.
+Each consensus round is based on two phase voting via a commit-reveal mechanism.
 
-### Registration Process
-TODO
+Voting rounds are configured be N blocks in length.
 
-### Election Process
+The default is to run a new consensus round roughly every hour. 
+The proposing round, in which verifiers submit blinded proposals.
+The reveal round, in which verifiers reveal the raw consensus value and seed.
+The proposing and reveal round are each roughly 30 minutes.
 
-Detailed description you can find at Slab: 
-[election mechanism](https://lucidity.slab.com/posts/andromeda-election-mechanism-v-0-2-0-e9a79c2a).
+### Consensus Process
 
-General info:
 * Election has two phases: propose and reveal. Duration of each is: N blocks. 
 * Phases going cycle, every `N * 2` blocks new cycle start.
 * Noone is in charge of starting phases, its self-controlled mechanism.   
 * Each election root results are save to a block and kept on `Chain` contract at `blockHeight` index. 
-
-### Payment Process
 
 ## Development
 
