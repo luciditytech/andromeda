@@ -8,7 +8,7 @@
 This repository is a collection of smart contracts to launch Sidechains which can store consensus-driven blocks of information on the Ethereum blockchain.
 Each consensus round is based on two phase voting via a commit-reveal mechanism.
 
-Voting rounds are configured be N blocks length.
+Voting rounds are configured be N blocks in length.
 
 The default is to run a new consensus round roughly every hour. 
 The proposing round, in which verifiers submit blinded proposals.
