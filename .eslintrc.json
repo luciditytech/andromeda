@@ -13,6 +13,14 @@
     "web3": true
   },
   "rules": {
-    "no-console": "off"
+    "no-console": "off",
+    "prefer-destructuring": ["error", {
+      "AssignmentExpression": {
+        "array": false, // this will allow for: var bar = foo[0] <- access array with index
+        "object": true
+      }
+    }, {
+      "enforceForRenamedProperties": false
+    }]
   }
 }
