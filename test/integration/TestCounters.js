@@ -1,0 +1,240 @@
+import EthQuery from 'ethjs-query';
+import web3Utils from 'web3-utils';
+import BigNumber from 'bignumber.js';
+
+import { mineUntilReveal, mineUntilPropose } from '../helpers/SpecHelper';
+import registerVerifiers from '../helpers/RegisterVerifiers';
+import { isProposePhase, isRevealPhase } from '../helpers/CycleFunctions';
+import createProposals from '../samples/proposals';
+
+const Chain = artifacts.require('Chain');
+const ChainUtil = require('../proxy-contracts/proxyChain');
+
+const proxyChain = ChainUtil();
+const ethQuery = new EthQuery(web3.currentProvider);
+
+contract('Chain - testing counters', (accounts) => {
+  let chainInstance;
+  // for this test we need exactly 3
+  const verifiersCount = 3;
+  const phaseDuration = verifiersCount * 5;
+
+  let counter;
+
+  const {
+    verifiersAddr,
+    secrets,
+    proposals,
+    blindedProposals,
+  } = createProposals(verifiersCount, accounts, true);
+
+  beforeEach(async () => {
+    counter = new BigNumber(0);
+
+    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+
+    chainInstance = await Chain.new(
+      registryAddr,
+      phaseDuration,
+    );
+
+    proxyChain.setInstanceVar(chainInstance);
+
+    await mineUntilReveal(phaseDuration);
+  });
+
+  describe('when all verifiers proposed same proposal', () => {
+    beforeEach(async () => {
+      await mineUntilPropose(phaseDuration);
+
+      const block = await ethQuery.blockNumber();
+      assert.isTrue(isProposePhase(block.toNumber(), phaseDuration));
+
+      const awaits = [];
+      for (let i = 0; i < verifiersCount; i += 1) {
+        awaits.push(proxyChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+      }
+      await Promise.all(awaits);
+    });
+
+    describe('when we enter revealing phase', () => {
+      beforeEach(async () => {
+        await mineUntilReveal(phaseDuration);
+
+        const block = await ethQuery.blockNumber();
+        assert.isTrue(isRevealPhase(block.toNumber(), phaseDuration));
+      });
+
+      describe('when first verifier revealed', () => {
+        const votes = {};
+        let revealResult;
+
+        beforeEach(async () => {
+          revealResult =
+            await proxyChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+        });
+
+        it('should be a winner after very first reveal', async () => {
+          assert.isTrue(revealResult.LogUpdateCounters[0].newWinner);
+          const shard = revealResult.LogUpdateCounters[0].shard.toString(10);
+
+          votes[shard] = revealResult.LogUpdateCounters[0].counts;
+
+          assert.strictEqual(
+            counter.plus(revealResult.LogUpdateCounters[0].balance).toString(10),
+            revealResult.LogUpdateCounters[0].counts.toString(10),
+          );
+          counter = revealResult.LogUpdateCounters[0].counts;
+        });
+
+        describe('when the rest of verifiers revealed', () => {
+          let allResults;
+
+          beforeEach(async () => {
+            const awaits = [];
+            for (let i = 1; i < verifiersCount; i += 1) {
+              awaits.push(proxyChain.reveal(proposals[i], secrets[i], { from: verifiersAddr[i] }));
+            }
+
+            allResults = await Promise.all(awaits);
+          });
+
+          it('should be the same winner, because all proposals were the same', async () => {
+            allResults.map((result) => {
+              assert.isFalse(result.LogUpdateCounters[0].newWinner, 'there should be no new winner');
+              return true;
+            });
+          });
+        });
+      });
+    });
+  });
+
+
+  // has been com verifier for one invalid vote we need at least 2 verifiers per shard
+  describe('when one proposal is different', async () => {
+    beforeEach(async () => {
+      proposals[0] = web3Utils.soliditySha3('0x01');
+      blindedProposals[0] = web3Utils.soliditySha3(proposals[0], secrets[0]);
+    });
+
+    describe('when all propose', async () => {
+      const shards = {};
+
+      beforeEach(async () => {
+        // now we need to wait for propose phase
+        await mineUntilPropose(phaseDuration);
+
+        const block = await ethQuery.blockNumber();
+        assert.isTrue(isProposePhase(block.toNumber(), phaseDuration));
+
+        const awaits = [];
+        for (let i = 0; i < verifiersCount; i += 1) {
+          awaits.push(proxyChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+        }
+        const results = await Promise.all(awaits);
+
+        results.forEach((res) => {
+          shards[res.LogPropose[0].sender] = res.LogPropose[0].shard.toString(10);
+        });
+      });
+
+      describe('when we have all at least 3 verifiers in shard', async () => {
+        // list of shards that we can test
+        let validShard = -1;
+        const shardsCounter = {};
+
+        beforeEach(async () => {
+          // we need to make sure we have at lest one shard that has 3 verifiers
+          Object.keys(shards).forEach((addr) => {
+            const shard = shards[addr];
+
+            shardsCounter[shard] = !shardsCounter[shard] ? 1 : shardsCounter[shard] + 1;
+            if (shardsCounter[shard] >= 3) {
+              validShard = shard;
+            }
+          });
+
+          assert(validShard >= 0, 'we need valid shard with at least 3 verifiers');
+        });
+
+        describe('when we enter reveal phase', async () => {
+          beforeEach(async () => {
+            await mineUntilReveal(phaseDuration);
+
+            const block = await ethQuery.blockNumber();
+            assert.isTrue(isRevealPhase(block.toNumber(), phaseDuration));
+          });
+
+          describe('when first (different) verifier reveal', async () => {
+            const votes = {};
+            let firstMax = new BigNumber(0);
+            let max = new BigNumber(0);
+
+            let firstResults;
+
+            beforeEach(async () => {
+              firstResults =
+                await proxyChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+              assert.isTrue(firstResults.LogUpdateCounters[0].newWinner, 'first reveal should be a winner');
+
+              firstMax = firstResults.LogUpdateCounters[0].counts;
+              votes[proposals[0]] = firstMax;
+            });
+
+            describe('when rest of verifiers reveal', async () => {
+              let results;
+
+              beforeEach(async () => {
+                const awaits = [];
+                for (let i = 1; i < verifiersCount; i += 1) {
+                  awaits.push(proxyChain.reveal(
+                    proposals[i],
+                    secrets[i],
+                    { from: verifiersAddr[i] },
+                  ));
+                }
+                results = await Promise.all(awaits);
+              });
+
+              it('should be possible to have another winner, if the rest proposals collect more votes', async () => {
+                let wasAnotherWinner = false;
+
+                let winningResults;
+                results.map((revealResults) => {
+                  const { proposal, balance, newWinner } = revealResults.LogUpdateCounters[0];
+
+                  if (!votes[proposal]) {
+                    votes[proposal] = new BigNumber(0);
+                    max[proposal] = new BigNumber(0);
+                  }
+
+                  assert.strictEqual(proposal, proposals[1], 'every proposal much be the same');
+
+                  votes[proposal] = votes[proposal].plus(balance);
+                  max = max.plus(balance);
+
+                  if (newWinner) {
+                    wasAnotherWinner = proposal;
+                    winningResults = revealResults.LogUpdateCounters;
+                  }
+
+                  return votes;
+                });
+
+                assert.isTrue(wasAnotherWinner ? max.gt(firstMax) : firstMax.gte(max));
+
+                const root = await proxyChain.getBlockRoot(
+                  winningResults[0].blockHeight.toString(10),
+                  winningResults[0].shard.toString(10),
+                );
+
+                assert.strictEqual(root, wasAnotherWinner);
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});

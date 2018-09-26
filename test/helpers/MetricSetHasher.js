@@ -1,25 +1,17 @@
-import Web3 from 'web3';
-import leftPad from 'left-pad';
-import { isString, isNumber, forEach } from 'lodash';
-import Hasher from './Hasher.js';
+import { reduce } from 'lodash';
+import web3Utils from 'web3-utils';
 
-const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+export default function metricSetHasher(root, rows) {
+  const hash = web3Utils.soliditySha3(root);
 
-function call(root, rows) {
-  var hash = Hasher.keccak256(root);
-
-  _.forEach(rows, (row) => {
-    hash = Hasher.keccak256(
-      hash,
-      row['campaign_id'],
-      row['channel_id'],
-      row['impressions'],
-      row['clicks'],
-      row['conversions']
-    );
-  });
-
-  return hash;
-};
-
-module.exports.call = call;
+  return reduce(rows, (_hash, row) => (
+    web3Utils.soliditySha3(
+      _hash,
+      row.campaign_id,
+      row.channel_id,
+      row.impressions,
+      row.clicks,
+      row.conversions,
+    )
+  ), hash);
+}

@@ -7,7 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "scripts/test.sh",
+    "coverage": "./node_modules/.bin/solidity-coverage",
+    "console": "truffle console",
+    "lint:solium": "solium --dir .",
+    "lint:js": "eslint ./test/**/*.js",
+    "lint": "npm run lint:js && npm run lint:solium"
   },
   "repository": {
     "type": "git",
@@ -19,31 +24,36 @@
   },
   "homepage": "https://github.com/kr8os/andromeda#readme",
   "dependencies": {
-    "abi-decoder": "^1.0.9",
-    "bip39": "2.3.1",
-    "bn.js": "4.11.6",
-    "ethereumjs-abi": "^0.6.4",
-    "ethjs-provider-http": "0.1.6",
-    "ethjs-query": "0.2.4",
-    "ethjs-rpc": "0.1.5",
+    "abi-decoder": "^1.2.0",
+    "bip39": "2.5.0",
+    "bignumber.js": "^7.2.1",
+    "ethereumjs-abi": "^0.6.5",
+    "ethjs-query": "0.3.8",
     "js-sha1": "^0.6.0",
     "js-sha256": "^0.9.0",
     "jssha": "^2.3.1",
-    "left-pad": "^1.2.0",
-    "lodash": "^4.17.4",
-    "sancus": "file:../sancus",
-    "token-sale-contracts": "file:../token-sale-contracts",
-    "truffle-hdwallet-provider": "0.0.3",
-    "web3-js": "^1.0.0-beta.26",
-    "zeppelin-solidity": "^1.5.0"
+    "pokedex": "git@github.com:luciditytech/pokedex.git#develop",
+    "token-sale-contracts": "git@github.com:luciditytech/token-sale-contracts.git#develop",
+    "truffle-hdwallet-provider": "0.0.6",
+    "zeppelin-solidity": "^1.12.0"
   },
   "devDependencies": {
     "babel-polyfill": "^6.26.0",
-    "babel-preset-es2015": "^6.18.0",
-    "babel-preset-stage-2": "^6.24.1",
-    "babel-preset-stage-3": "^6.17.0",
-    "babel-register": "^6.23.0",
-    "npm": "^5.6.0",
-    "solidity-coverage": "^0.4.9"
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "eslint": "^4.18.2",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eth-gas-reporter": "^0.1.10",
+    "ganache-cli": "^6.1.8",
+    "lk-test-helpers": "^0.1.5",
+    "lodash": "^4.17.10",
+    "pify": "^4.0.0",
+    "solidity-coverage": "^0.5.5",
+    "solium": "^1.1.8",
+    "truffle": "^4.1.14",
+    "web3-eth": "^1.0.0-beta.36",
+    "web3-utils": "^1.0.0-beta.36"
   }
 }
