@@ -1,6 +1,6 @@
 const fs = require('fs');
 const VerifierRegistry = artifacts.require('VerifierRegistry');
-const HumanStandardToken = artifacts.require('HumanStandardToken.sol');
+const HumanStandardToken = artifacts.require('HumanStandardToken');
 
 module.exports = (deployer, network, accounts) => {
   let config;
@@ -8,7 +8,6 @@ module.exports = (deployer, network, accounts) => {
 
   if (
     network === 'development' ||
-    network === 'ropsten' ||
     network === 'coverage'
   ) {
     config = JSON.parse(fs.readFileSync('./config/development.json'));
@@ -23,7 +22,11 @@ module.exports = (deployer, network, accounts) => {
       config.HumanStandardToken.symbol,
     );
   } else {
-    config = JSON.parse(fs.readFileSync('./config/production.json'));
+    if (network === 'staging') {
+      config = JSON.parse(fs.readFileSync('./config/staging.json'));
+    } else if (network === 'production') {
+      config = JSON.parse(fs.readFileSync('./config/production.json'));
+    }
 
     wallet = config['wallet'];
   }
