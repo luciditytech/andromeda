@@ -1,22 +1,31 @@
 const fs = require('fs');
-const Chain = artifacts.require("./Chain");
 const VerifierRegistry = artifacts.require('VerifierRegistry');
+const HumanStandardToken = artifacts.require('HumanStandardToken');
 
-module.exports = function(deployer, network) {
-
+module.exports = (deployer, network, accounts) => {
   let config;
+  let wallet;
 
-  if (
+    if (
     network === 'development' ||
     network === 'coverage'
   ) {
     config = JSON.parse(fs.readFileSync('./config/development.json'));
+    wallet = accounts[0];
   } else if (network === 'staging') {
     config = JSON.parse(fs.readFileSync('./config/staging.json'));
+    wallet = config['wallet'];
   } else if (network === 'production') {
     config = JSON.parse(fs.readFileSync('./config/production.json'));
+    wallet = config['wallet'];
   }
 
-  var verifierRegistryAddress = (config.Chain.verifierRegistryAddress || VerifierRegistry.address);
-  deployer.deploy(Chain, verifierRegistryAddress, config.Chain.blocksPerPhase);
+  deployer.deploy(
+    HumanStandardToken,
+    config.HumanStandardToken.total,
+    config.HumanStandardToken.name,
+    config.HumanStandardToken.decimals,
+    config.HumanStandardToken.symbol,
+    { from: wallet }
+  );
 };
