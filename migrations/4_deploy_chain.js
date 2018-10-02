@@ -2,7 +2,7 @@ const fs = require('fs');
 const Chain = artifacts.require("./Chain.sol");
 const VerifierRegistry = artifacts.require('VerifierRegistry');
 
-module.exports = function(deployer, network) {
+module.exports = function(deployer, network, accounts) {
 
   let config;
 
@@ -11,7 +11,7 @@ module.exports = function(deployer, network) {
     network === 'coverage'
   ) {
     config = JSON.parse(fs.readFileSync('./config/development.json'));
-    wallet = config['wallet'];
+    wallet = accounts[0];
   } else if (network === 'staging') {
     config = JSON.parse(fs.readFileSync('./config/staging.json'));
     wallet = config['wallet'];
@@ -22,10 +22,18 @@ module.exports = function(deployer, network) {
 
   var verifierRegistryAddress = (config.Chain.verifierRegistryAddress || VerifierRegistry.address);
 
-  deployer.deploy(
-    Chain,
-    verifierRegistryAddress,
-    config.Chain.blocksPerPhase,
-    { from: wallet }
-  );
+  if (wallet) {
+    deployer.deploy(
+      Chain,
+      verifierRegistryAddress,
+      config.Chain.blocksPerPhase,
+      { from: wallet }
+    );
+  } else {
+    deployer.deploy(
+      Chain,
+      verifierRegistryAddress,
+      config.Chain.blocksPerPhase
+    );
+  }
 };

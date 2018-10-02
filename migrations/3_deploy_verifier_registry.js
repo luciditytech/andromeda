@@ -23,9 +23,16 @@ module.exports = (deployer, network, accounts) => {
     tokenAddress = config.VerifierRegistry.tokenAddress;
   }
 
-  deployer.deploy(
-    VerifierRegistry,
-    tokenAddress,
-    { from: wallet }
-  );
+  if (wallet) {
+    deployer.deploy(
+      VerifierRegistry,
+      tokenAddress,
+      { from: wallet }
+    );
+  } else {
+    deployer.deploy(
+      VerifierRegistry,
+      tokenAddress
+    );
+  }
 };

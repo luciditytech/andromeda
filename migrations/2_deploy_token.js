@@ -20,12 +20,22 @@ module.exports = (deployer, network, accounts) => {
     wallet = config['wallet'];
   }
 
-  deployer.deploy(
-    HumanStandardToken,
-    config.HumanStandardToken.total,
-    config.HumanStandardToken.name,
-    config.HumanStandardToken.decimals,
-    config.HumanStandardToken.symbol,
-    { from: wallet }
-  );
+  if (wallet) {
+    deployer.deploy(
+      HumanStandardToken,
+      config.HumanStandardToken.total,
+      config.HumanStandardToken.name,
+      config.HumanStandardToken.decimals,
+      config.HumanStandardToken.symbol,
+      { from: wallet }
+    );
+  } else {
+    deployer.deploy(
+      HumanStandardToken,
+      config.HumanStandardToken.total,
+      config.HumanStandardToken.name,
+      config.HumanStandardToken.decimals,
+      config.HumanStandardToken.symbol
+    );
+  }
 };
