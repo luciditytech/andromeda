@@ -23,17 +23,13 @@ module.exports = function(deployer, network, accounts) {
   var verifierRegistryAddress = (config.Chain.verifierRegistryAddress || VerifierRegistry.address);
 
   if (wallet) {
-    deployer.deploy(
-      Chain,
-      verifierRegistryAddress,
-      config.Chain.blocksPerPhase,
-      { from: wallet }
-    );
-  } else {
-    deployer.deploy(
-      Chain,
-      verifierRegistryAddress,
-      config.Chain.blocksPerPhase
-    );
+    options = { from: wallet };
   }
+
+  deployer.deploy(
+    Chain,
+    verifierRegistryAddress,
+    config.Chain.blocksPerPhase,
+    options
+  );
 };

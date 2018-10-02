@@ -5,6 +5,7 @@ const HumanStandardToken = artifacts.require('HumanStandardToken');
 module.exports = (deployer, network, accounts) => {
   let config;
   let wallet;
+  let options = {};
 
     if (
     network === 'development' ||
@@ -21,21 +22,15 @@ module.exports = (deployer, network, accounts) => {
   }
 
   if (wallet) {
-    deployer.deploy(
-      HumanStandardToken,
-      config.HumanStandardToken.total,
-      config.HumanStandardToken.name,
-      config.HumanStandardToken.decimals,
-      config.HumanStandardToken.symbol,
-      { from: wallet }
-    );
-  } else {
-    deployer.deploy(
-      HumanStandardToken,
-      config.HumanStandardToken.total,
-      config.HumanStandardToken.name,
-      config.HumanStandardToken.decimals,
-      config.HumanStandardToken.symbol
-    );
+    options = { from: wallet };
   }
+
+  deployer.deploy(
+    HumanStandardToken,
+    config.HumanStandardToken.total,
+    config.HumanStandardToken.name,
+    config.HumanStandardToken.decimals,
+    config.HumanStandardToken.symbol,
+    options
+  );
 };

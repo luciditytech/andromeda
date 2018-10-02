@@ -5,6 +5,7 @@ const HumanStandardToken = artifacts.require('HumanStandardToken');
 module.exports = (deployer, network, accounts) => {
   let config;
   let wallet;
+  let options = {};
 
   if (
     network === 'development' ||
@@ -24,15 +25,12 @@ module.exports = (deployer, network, accounts) => {
   }
 
   if (wallet) {
-    deployer.deploy(
-      VerifierRegistry,
-      tokenAddress,
-      { from: wallet }
-    );
-  } else {
-    deployer.deploy(
-      VerifierRegistry,
-      tokenAddress
-    );
+    options = { from: wallet };
   }
+
+  deployer.deploy(
+    VerifierRegistry,
+    tokenAddress,
+    options
+  );
 };
