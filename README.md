@@ -106,7 +106,7 @@ Below some example screen, how it look like in Ethereum wallet:
 The hard part here is that you need have verifier who has token balance. 
 Below is a way how to do it:
  
-In truffle console `truffle console --network ropsten`:
+In truffle console `truffle console --network staging`:
 ```
 var chainAddr = '0x62Dcb16E90221B6312044efa7A073b2fed760a7F';
 var registryAddr = '0x98db23cbd024fE31D06d496CBdf870000d51BB08';
@@ -157,7 +157,7 @@ chain.getBlockRoot(255311,0);
 
 For Test Net you can simple use this:  
 ```
-truffle deploy --network ropsten
+truffle deploy --network staging
 ```
 
 For Main Net I do recommend using ethereum wallet + bytecode. 

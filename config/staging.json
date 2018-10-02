@@ -1,0 +1,9 @@
+{
+  "VerifierRegistry": {
+    "tokenAddress": "0x1588d300a9995934aa9daae19be285a66eb46c1c"
+  },
+  "Chain": {
+    "verifierRegistryAddress": "0xcf087e3cd8a747aa4fc51e8a38256188ab727317",
+    "blocksPerPhase": "8"
+  }
+}
