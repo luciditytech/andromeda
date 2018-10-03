@@ -1,6 +1,6 @@
 {
   "name": "andromeda",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Consensus Smart Contracts",
   "main": "truffle.js",
   "directories": {
@@ -16,13 +16,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kr8os/andromeda.git"
+    "url": "git+https://github.com/luciditytech/andromeda.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kr8os/andromeda/issues"
+    "url": "https://github.com/luciditytech/andromeda/issues"
   },
-  "homepage": "https://github.com/kr8os/andromeda#readme",
+  "homepage": "https://github.com/luciditytech/andromeda#readme",
   "dependencies": {
     "abi-decoder": "^1.2.0",
     "bip39": "2.5.0",
@@ -32,7 +32,7 @@
     "js-sha1": "^0.6.0",
     "js-sha256": "^0.9.0",
     "jssha": "^2.3.1",
-    "pokedex": "git@github.com:luciditytech/pokedex.git#develop",
+    "digivice": "git@github.com:luciditytech/digivice.git#develop",
     "token-sale-contracts": "git@github.com:luciditytech/token-sale-contracts.git#develop",
     "truffle-hdwallet-provider": "0.0.6",
     "zeppelin-solidity": "^1.12.0"
