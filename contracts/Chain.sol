@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
-import "pokedex/contracts/VerifierRegistry.sol";
+import "digivice/contracts/VerifierRegistry.sol";
 import "./ChainConfig.sol";
 
 

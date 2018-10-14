@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Changed:
 - Cleaned up README to make project open source
+- Uses digivice repo for registry
 
 ## [0.2.0] - 2018-09-26
 ### Added:
