@@ -2,7 +2,6 @@ pragma solidity ^0.4.24;
 
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 import "digivice/contracts/VerifierRegistry.sol";
-import "./interface/IChain.sol";
 import "./ChainConfig.sol";
 
 
