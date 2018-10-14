@@ -28,9 +28,12 @@ module.exports = (deployer, network, accounts) => {
     options = { from: wallet };
   }
 
+  let verifiersPerShard = 3;
+
   deployer.deploy(
     VerifierRegistry,
     tokenAddress,
+    verifiersPerShard,
     options
   );
 };
