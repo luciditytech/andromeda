@@ -49,13 +49,14 @@ const advanceBlock = () => (
 );
 
 const advanceToBlock = async (number) => {
-  if (web3.eth.blockNumber > number) {
-    throw Error(`block number ${number} is in the past (current is ${web3.eth.blockNumber})`);
+  const bn = await ethQuery.blockNumber();
+  if (bn > number) {
+    throw Error(`block number ${number} is in the past (current is ${bn})`);
   }
 
   const awaits = [];
 
-  const blockCount = number - web3.eth.blockNumber;
+  const blockCount = number - bn;
 
   Array(blockCount)
     .fill()

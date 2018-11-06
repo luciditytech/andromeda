@@ -1,6 +1,6 @@
 import chai from 'chai';
 import web3Utils from 'web3-utils';
-import { proxyExecute } from '../proxy-utils';
+import ministroExecute from 'ministro-tool';
 
 const { assert } = chai;
 
@@ -11,7 +11,7 @@ function ProxyContract() {
   app.shard = {};
 
   /* eslint-disable-next-line */
-  app.__proto__ = proxyExecute();
+  app.__proto__ = ministroExecute();
 
   app.createProof = async (proposal, secret) => {
     assert.strictEqual(proposal.length, 66);
