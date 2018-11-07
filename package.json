@@ -11,7 +11,7 @@
     "coverage": "./node_modules/.bin/solidity-coverage",
     "console": "truffle console",
     "lint:solium": "solium --dir .",
-    "lint:js": "eslint ./test/**/*.js",
+    "lint:js": "eslint ./test/**/*.js --fix",
     "lint": "npm run lint:js && npm run lint:solium"
   },
   "repository": {
@@ -25,14 +25,15 @@
   "homepage": "https://github.com/luciditytech/andromeda#readme",
   "dependencies": {
     "abi-decoder": "^1.2.0",
-    "bip39": "2.5.0",
     "bignumber.js": "^7.2.1",
+    "bip39": "2.5.0",
+    "digivice": "git@github.com:luciditytech/digivice.git#develop",
     "ethereumjs-abi": "^0.6.5",
     "ethjs-query": "0.3.8",
     "js-sha1": "^0.6.0",
     "js-sha256": "^0.9.0",
     "jssha": "^2.3.1",
-    "digivice": "git@github.com:luciditytech/digivice.git#develop",
+    "ministro-tool": "^0.1.2",
     "token-sale-contracts": "git@github.com:luciditytech/token-sale-contracts.git#develop",
     "truffle-hdwallet-provider": "0.0.6",
     "zeppelin-solidity": "^1.12.0"

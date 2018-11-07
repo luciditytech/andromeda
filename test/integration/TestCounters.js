@@ -8,9 +8,9 @@ import { isProposePhase, isRevealPhase } from '../helpers/CycleFunctions';
 import createProposals from '../samples/proposals';
 
 const Chain = artifacts.require('Chain');
-const ChainUtil = require('../proxy-contracts/proxyChain');
+const ChainUtil = require('../ministro-contracts/ministroChain');
 
-const proxyChain = ChainUtil();
+const ministroChain = ChainUtil();
 const ethQuery = new EthQuery(web3.currentProvider);
 
 contract('Chain - testing counters', (accounts) => {
@@ -28,7 +28,7 @@ contract('Chain - testing counters', (accounts) => {
     blindedProposals,
   } = createProposals(verifiersCount, accounts, true);
 
-  beforeEach(async () => {
+  before(async () => {
     counter = new BigNumber(0);
 
     const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
@@ -38,13 +38,13 @@ contract('Chain - testing counters', (accounts) => {
       phaseDuration,
     );
 
-    proxyChain.setInstanceVar(chainInstance);
+    ministroChain.setInstanceVar(chainInstance);
 
     await mineUntilReveal(phaseDuration);
   });
 
   describe('when all verifiers proposed same proposal', () => {
-    beforeEach(async () => {
+    before(async () => {
       await mineUntilPropose(phaseDuration);
 
       const block = await ethQuery.blockNumber();
@@ -52,13 +52,13 @@ contract('Chain - testing counters', (accounts) => {
 
       const awaits = [];
       for (let i = 0; i < verifiersCount; i += 1) {
-        awaits.push(proxyChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+        awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
       }
       await Promise.all(awaits);
     });
 
     describe('when we enter revealing phase', () => {
-      beforeEach(async () => {
+      before(async () => {
         await mineUntilReveal(phaseDuration);
 
         const block = await ethQuery.blockNumber();
@@ -69,9 +69,9 @@ contract('Chain - testing counters', (accounts) => {
         const votes = {};
         let revealResult;
 
-        beforeEach(async () => {
+        before(async () => {
           revealResult =
-            await proxyChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+            await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
         });
 
         it('should be a winner after very first reveal', async () => {
@@ -90,10 +90,14 @@ contract('Chain - testing counters', (accounts) => {
         describe('when the rest of verifiers revealed', () => {
           let allResults;
 
-          beforeEach(async () => {
+          before(async () => {
             const awaits = [];
             for (let i = 1; i < verifiersCount; i += 1) {
-              awaits.push(proxyChain.reveal(proposals[i], secrets[i], { from: verifiersAddr[i] }));
+              awaits.push(ministroChain.reveal(
+                proposals[i],
+                secrets[i],
+                { from: verifiersAddr[i] },
+              ));
             }
 
             allResults = await Promise.all(awaits);
@@ -113,7 +117,7 @@ contract('Chain - testing counters', (accounts) => {
 
   // has been com verifier for one invalid vote we need at least 2 verifiers per shard
   describe('when one proposal is different', async () => {
-    beforeEach(async () => {
+    before(async () => {
       proposals[0] = web3Utils.soliditySha3('0x01');
       blindedProposals[0] = web3Utils.soliditySha3(proposals[0], secrets[0]);
     });
@@ -121,7 +125,7 @@ contract('Chain - testing counters', (accounts) => {
     describe('when all propose', async () => {
       const shards = {};
 
-      beforeEach(async () => {
+      before(async () => {
         // now we need to wait for propose phase
         await mineUntilPropose(phaseDuration);
 
@@ -130,7 +134,7 @@ contract('Chain - testing counters', (accounts) => {
 
         const awaits = [];
         for (let i = 0; i < verifiersCount; i += 1) {
-          awaits.push(proxyChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
         }
         const results = await Promise.all(awaits);
 
@@ -144,7 +148,7 @@ contract('Chain - testing counters', (accounts) => {
         let validShard = -1;
         const shardsCounter = {};
 
-        beforeEach(async () => {
+        before(async () => {
           // we need to make sure we have at lest one shard that has 3 verifiers
           Object.keys(shards).forEach((addr) => {
             const shard = shards[addr];
@@ -159,7 +163,7 @@ contract('Chain - testing counters', (accounts) => {
         });
 
         describe('when we enter reveal phase', async () => {
-          beforeEach(async () => {
+          before(async () => {
             await mineUntilReveal(phaseDuration);
 
             const block = await ethQuery.blockNumber();
@@ -173,9 +177,9 @@ contract('Chain - testing counters', (accounts) => {
 
             let firstResults;
 
-            beforeEach(async () => {
+            before(async () => {
               firstResults =
-                await proxyChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+                await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
               assert.isTrue(firstResults.LogUpdateCounters[0].newWinner, 'first reveal should be a winner');
 
               firstMax = firstResults.LogUpdateCounters[0].counts;
@@ -185,10 +189,10 @@ contract('Chain - testing counters', (accounts) => {
             describe('when rest of verifiers reveal', async () => {
               let results;
 
-              beforeEach(async () => {
+              before(async () => {
                 const awaits = [];
                 for (let i = 1; i < verifiersCount; i += 1) {
-                  awaits.push(proxyChain.reveal(
+                  awaits.push(ministroChain.reveal(
                     proposals[i],
                     secrets[i],
                     { from: verifiersAddr[i] },
@@ -209,7 +213,7 @@ contract('Chain - testing counters', (accounts) => {
                     max[proposal] = new BigNumber(0);
                   }
 
-                  assert.strictEqual(proposal, proposals[1], 'every proposal much be the same');
+                  assert.strictEqual(proposal, proposals[1], 'every proposal must be the same');
 
                   votes[proposal] = votes[proposal].plus(balance);
                   max = max.plus(balance);
@@ -222,9 +226,10 @@ contract('Chain - testing counters', (accounts) => {
                   return votes;
                 });
 
+                assert.strictEqual(wasAnotherWinner, proposals[1], 'there should be another winner');
                 assert.isTrue(wasAnotherWinner ? max.gt(firstMax) : firstMax.gte(max));
 
-                const root = await proxyChain.getBlockRoot(
+                const root = await ministroChain.getBlockRoot(
                   winningResults[0].blockHeight.toString(10),
                   winningResults[0].shard.toString(10),
                 );

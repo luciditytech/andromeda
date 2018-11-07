@@ -4,9 +4,9 @@ import createProposals from '../samples/proposals';
 
 const Chain = artifacts.require('Chain');
 
-const ChainUtil = require('../proxy-contracts/proxyChain');
+const ChainUtil = require('../ministro-contracts/ministroChain');
 
-const proxyChain = ChainUtil();
+const ministroChain = ChainUtil();
 
 contract('Chain - testing getters', (accounts) => {
   const phaseDuration = 5;
@@ -29,7 +29,7 @@ contract('Chain - testing getters', (accounts) => {
       phaseDuration,
     );
 
-    proxyChain.setInstanceVar(chainInstance);
+    ministroChain.setInstanceVar(chainInstance);
   });
 
   describe('when verifier propose and reveal', async () => {
@@ -46,9 +46,9 @@ contract('Chain - testing getters', (accounts) => {
       await mineUntilPropose(phaseDuration);
 
 
-      await proxyChain.propose(blindedProposals[0], { from: verifiersAddr[0] });
+      await ministroChain.propose(blindedProposals[0], { from: verifiersAddr[0] });
       await mineUntilReveal(phaseDuration);
-      results = await proxyChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+      results = await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
 
 
       ({ sender, blockHeight, proposal } = results.LogReveal[0]);
@@ -60,11 +60,11 @@ contract('Chain - testing getters', (accounts) => {
     });
 
     it('should be possible to get winning root', async () => {
-      assert.strictEqual(await proxyChain.getBlockRoot(blockHeight, shard), proposal);
+      assert.strictEqual(await ministroChain.getBlockRoot(blockHeight, shard), proposal);
     });
 
     it('should be possible to get voter information', async () => {
-      const voter = await proxyChain.getBlockVoter(blockHeight, sender);
+      const voter = await ministroChain.getBlockVoter(blockHeight, sender);
 
       assert.strictEqual(voter.blindedProposal, blindedProposals[0]);
       assert.strictEqual(voter.shard, shard);
@@ -72,20 +72,20 @@ contract('Chain - testing getters', (accounts) => {
     });
 
     it('should be possible to get max Votes information', async () => {
-      const maxVotes = await proxyChain.getBlockMaxVotes(blockHeight, shard);
+      const maxVotes = await ministroChain.getBlockMaxVotes(blockHeight, shard);
       assert.strictEqual(maxVotes.toString(10), balance);
     });
 
     it('should be possible to get count information', async () => {
-      const count = await proxyChain.getBlockCount(blockHeight, shard, proposals[0]);
+      const count = await ministroChain.getBlockCount(blockHeight, shard, proposals[0]);
       assert.strictEqual(balance, count.toString(10));
     });
 
     it('should be possible to read verifier addresses', async () => {
-      const addrsCount = await proxyChain.getBlockAddressCount(blockHeight);
+      const addrsCount = await ministroChain.getBlockAddressCount(blockHeight);
       assert.strictEqual(addrsCount.toString(10), '1');
 
-      const addr = await proxyChain.getBlockAddress(blockHeight, 0);
+      const addr = await ministroChain.getBlockAddress(blockHeight, 0);
       assert.strictEqual(addr, verifiersAddr[0]);
     });
   });
