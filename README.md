@@ -159,6 +159,15 @@ For Test Net you can simple use this:
 ```
 truffle deploy --network staging
 ```
+Just please update `.env` with `key=value` pairs:
+```
+DEPLOY_DEV=true|false
+INFURA_ACCESS_TOKEN=...
+ROPSTEN_MNEMONIC=...
+ROPSTEN_PK=...
+```
+ before deploy. **DO NOT COMMIT THIS VALUES**.
+
 
 For Main Net I do recommend using ethereum wallet + bytecode. 
 It will be much much faster and cheaper. 
@@ -167,10 +176,20 @@ It will be much much faster and cheaper.
 
 * development (8 blocks per phase) 
 [0x62Dcb16E90221B6312044efa7A073b2fed760a7F](https://ropsten.etherscan.io/address/0x62Dcb16E90221B6312044efa7A073b2fed760a7F)
-* staging (140 blocks per phase) 
+* staging (140 blocks per phase)
 [0x923afd068aed0156d788c10ea875656e095cbf4f](https://ropsten.etherscan.io/address/0x923afd068aed0156d788c10ea875656e095cbf4f)
 * production (140 blocks per phase) 
-[0xb2e0ac0e9f96eeb2c3f941e5b61666efbd40376e](https://ropsten.etherscan.io/address/0xb2e0ac0e9f96eeb2c3f941e5b61666efbd40376e)
+[0xbf9f3e5d89bceede272805b6acaeda91c6f71816](https://ropsten.etherscan.io/address/0xbf9f3e5d89bceede272805b6acaeda91c6f71816)
+
+
+#### Code verification
+
+1. run `truffle-flattener ./contracts/Chain.sol > all.sol` to combined solidity file.
+1. Use Remix + Metamask to deploy contract.
+1. Go to your contract on Etherscan.io and choose **Verify And Publish**
+1. Copy content of `all.sol` in solidity contract code field
+1. Fill in other fields (constructor arguments should be already filled in)
+1. Click **Verify and Publish**... and your are done!
 
 ## Licensed under MIT.
 

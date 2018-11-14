@@ -5,6 +5,7 @@ const VerifierRegistry = artifacts.require('VerifierRegistry');
 module.exports = function(deployer, network, accounts) {
 
   let config;
+  let options = {};
 
   if (
     network === 'development' ||
