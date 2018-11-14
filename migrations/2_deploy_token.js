@@ -1,5 +1,4 @@
 const fs = require('fs');
-const VerifierRegistry = artifacts.require('VerifierRegistry');
 const HumanStandardToken = artifacts.require('HumanStandardToken');
 
 module.exports = (deployer, network, accounts) => {
