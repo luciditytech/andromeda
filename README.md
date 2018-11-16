@@ -176,15 +176,17 @@ It will be much much faster and cheaper.
 
 * development (8 blocks per phase) 
 [0x62Dcb16E90221B6312044efa7A073b2fed760a7F](https://ropsten.etherscan.io/address/0x62Dcb16E90221B6312044efa7A073b2fed760a7F)
-* staging (140 blocks per phase)
-[0x923afd068aed0156d788c10ea875656e095cbf4f](https://ropsten.etherscan.io/address/0x923afd068aed0156d788c10ea875656e095cbf4f)
-* production (140 blocks per phase) 
-[0xbf9f3e5d89bceede272805b6acaeda91c6f71816](https://ropsten.etherscan.io/address/0xbf9f3e5d89bceede272805b6acaeda91c6f71816)
+* staging (5 blocks per phase) 
+[0xdf4ed5b528604192fd583c8ccd070b07f537c15e](https://ropsten.etherscan.io/address/0xdf4ed5b528604192fd583c8ccd070b07f537c15e#readContract)
+* production (5 blocks per phase) 
+[0xff3aa2f5c76a8c53327ad5517ce7d4f2018971a3](https://ropsten.etherscan.io/address/0xff3aa2f5c76a8c53327ad5517ce7d4f2018971a3#readContract)
 
 
 #### Code verification
 
-1. run `truffle-flattener ./contracts/Chain.sol > all.sol` to combined solidity file.
+1. run `truffle-flattener ./contracts/Chain.sol > all.sol` to combined solidity file.  
+ Review the file ie: you can remove pragma repetition, 
+ you can add some comments if you like.  
 1. Use Remix + Metamask to deploy contract.
 1. Go to your contract on Etherscan.io and choose **Verify And Publish**
 1. Copy content of `all.sol` in solidity contract code field
