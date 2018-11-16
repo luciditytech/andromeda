@@ -11,6 +11,6 @@
   },
   "Chain": {
     "verifierRegistryAddress": "0x83d53e4997bb7bab5f4513c57aecd9b8f1393003",
-    "blocksPerPhase": "90"
+    "blocksPerPhase": "5"
   }
 }
