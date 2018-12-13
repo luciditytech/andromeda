@@ -1,11 +1,12 @@
 const fs = require('fs');
-const Chain = artifacts.require("./Chain.sol");
+const Chain = artifacts.require('./Chain.sol');
 const VerifierRegistry = artifacts.require('VerifierRegistry');
 
 module.exports = function(deployer, network, accounts) {
 
   let config;
   let options = {};
+  let wallet;
 
   if (
     network === 'development' ||
@@ -21,7 +22,7 @@ module.exports = function(deployer, network, accounts) {
     wallet = config['wallet'];
   }
 
-  var verifierRegistryAddress = (config.Chain.verifierRegistryAddress || VerifierRegistry.address);
+  const verifierRegistryAddress = (config.Chain.verifierRegistryAddress || VerifierRegistry.address);
 
   if (wallet) {
     options = { from: wallet };
@@ -31,6 +32,7 @@ module.exports = function(deployer, network, accounts) {
     Chain,
     verifierRegistryAddress,
     config.Chain.blocksPerPhase,
+    config.Chain.minimumStakingTokenPercentage,
     options
   );
 };

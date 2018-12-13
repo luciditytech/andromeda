@@ -3,7 +3,7 @@ import web3Utils from 'web3-utils';
 import BigNumber from 'bignumber.js';
 
 import { mineUntilReveal, mineUntilPropose } from '../helpers/SpecHelper';
-import registerVerifiers from '../helpers/RegisterVerifiers';
+import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import { isProposePhase, isRevealPhase } from '../helpers/CycleFunctions';
 import createProposals from '../samples/proposals';
 
@@ -18,6 +18,7 @@ contract('Chain - testing counters', (accounts) => {
   // for this test we need exactly 3
   const verifiersCount = 3;
   const phaseDuration = verifiersCount * 5;
+  const requirePercentOfTokens = 70;
 
   let counter;
 
@@ -36,6 +37,7 @@ contract('Chain - testing counters', (accounts) => {
     chainInstance = await Chain.new(
       registryAddr,
       phaseDuration,
+      requirePercentOfTokens,
     );
 
     ministroChain.setInstanceVar(chainInstance);

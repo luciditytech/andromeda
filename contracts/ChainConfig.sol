@@ -15,6 +15,9 @@ contract ChainConfig is Ownable {
   /// @dev address of `VerifierRegistry.sol`
   address public registryAddress;
 
+  /// @dev required percent of all tokens for value for election tobe valid
+  uint8 public minimumStakingTokenPercentage;
+
   modifier whenProposePhase() {
     require(getCurrentElectionCycleBlock() < blocksPerPhase, "we are not in propose phase");
     _;
@@ -24,17 +27,22 @@ contract ChainConfig is Ownable {
     _;
   }
 
-  event LogBlocksPerPhase(uint8 blocksPerPhase);
+  event LogChainConfig(uint8 blocksPerPhase, uint8 requirePercentOfTokens);
 
   event LogUpdateRegistryAddress(address indexed newRegistryAddress);
 
-  constructor (address _registryAddress, uint8 _blocksPerPhase)
+  constructor (address _registryAddress, uint8 _blocksPerPhase, uint8 _minimumStakingTokenPercentage)
   public {
 
     require(_blocksPerPhase > 0, "_blocksPerPhase can't be empty");
     blocksPerPhase = _blocksPerPhase;
 
-    emit LogBlocksPerPhase(_blocksPerPhase);
+    require(_minimumStakingTokenPercentage > 0, "_minimumStakingTokenPercentage can't be empty");
+    require(_minimumStakingTokenPercentage <= 100, "_minimumStakingTokenPercentage can't be over 100%");
+    minimumStakingTokenPercentage = _minimumStakingTokenPercentage;
+
+    emit LogChainConfig(_blocksPerPhase, _minimumStakingTokenPercentage);
+
 
     require(_registryAddress != address(0), "registry address is empty");
     registryAddress = _registryAddress;

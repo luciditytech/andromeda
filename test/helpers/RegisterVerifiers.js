@@ -7,6 +7,27 @@ const HumanStandardToken = artifacts.require('token-sale-contracts/contracts/Hum
 
 const config = JSON.parse(fs.readFileSync('./config/development.json'));
 
+
+async function balancesPerShard(shard) {
+  const registry = await VerifierRegistry.deployed();
+  const res = await registry.balancesPerShard.call(shard.toString());
+  return res.toString();
+}
+
+async function verifiersPerShard() {
+  const registry = await VerifierRegistry.deployed();
+  const res = await registry.verifiersPerShard.call();
+  return res.toString();
+}
+
+
+async function verifierExists(addr) {
+  const registry = await VerifierRegistry.deployed();
+  let res = await registry.verifiers.call(addr);
+  res = formatVerifier.format(res);
+  return res.created;
+}
+
 // @return address of registry
 async function registerVerifiers(regOwner, verifiersAddr) {
   const registry = await VerifierRegistry.deployed();
@@ -17,8 +38,9 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   const amounts = {};
 
   try {
-    const mapResults = verifiersAddr.map(async (addr) => {
-      amounts[addr] = parseInt(Math.random() * 5, 10) + 1;
+    const mapResults = verifiersAddr.map(async (addr, i) => {
+      if (await verifierExists(addr)) return;
+      amounts[addr] = i + 1;
       await humanStandardToken.transfer(addr, amounts[addr], { from: regOwner });
     });
     await Promise.all(mapResults);
@@ -29,6 +51,7 @@ async function registerVerifiers(regOwner, verifiersAddr) {
 
   try {
     const mapResults = verifiersAddr.map(async (addr) => {
+      if (!amounts[addr]) return;
       await humanStandardToken.approve(registry.address, amounts[addr], { from: addr });
     });
     await Promise.all(mapResults);
@@ -41,6 +64,7 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   try {
     const mapResults = [];
     verifiersAddr.map(async (addr, i) => {
+      if (!amounts[addr]) return;
       mapResults.push(registry.create(`192.168.1.${i + 1}`, { from: addr }));
     });
     await Promise.all(mapResults);
@@ -52,6 +76,7 @@ async function registerVerifiers(regOwner, verifiersAddr) {
 
   try {
     const mapResults = verifiersAddr.map(async (addr) => {
+      if (!amounts[addr]) return;
       await registry.receiveApproval(addr, 0, config.VerifierRegistry.tokenAddress, '');
     });
     await Promise.all(mapResults);
@@ -73,4 +98,8 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   return registry.address;
 }
 
-module.exports = registerVerifiers;
+export {
+  registerVerifiers,
+  balancesPerShard,
+  verifiersPerShard,
+};

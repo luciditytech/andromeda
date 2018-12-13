@@ -1,5 +1,5 @@
 import { mineUntilPropose, mineUntilReveal, writeProcessMsg } from '../helpers/SpecHelper';
-import registerVerifiers from '../helpers/RegisterVerifiers';
+import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
 const Chain = artifacts.require('Chain');
@@ -11,6 +11,7 @@ const ministroChain = ChainUtil();
 contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
   const phaseDuration = accounts.length - 1;
   const verifiersCount = phaseDuration;
+  const requirePercentOfTokens = 70;
 
   let chainInstance;
 
@@ -27,6 +28,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
     chainInstance = await Chain.new(
       registryAddr,
       phaseDuration,
+      requirePercentOfTokens,
     );
 
     ministroChain.setInstanceVar(chainInstance);

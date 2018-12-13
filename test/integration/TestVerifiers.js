@@ -3,7 +3,7 @@ import sha256 from 'js-sha256';
 import EthQuery from 'ethjs-query';
 
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
-import registerVerifiers from '../helpers/RegisterVerifiers';
+import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import { isRevealPhase, isProposePhase } from '../helpers/CycleFunctions';
 
 import createProposals from '../samples/proposals';
@@ -18,6 +18,7 @@ const ethQuery = new EthQuery(web3.currentProvider);
 
 const verifiersCount = 3;
 const phaseDuration = 5 * verifiersCount;
+const requirePercentOfTokens = 70;
 
 contract('Chain: 1 or more verifiers scenario (base on configuration)', (accounts) => {
   let chainInstance;
@@ -34,6 +35,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
     chainInstance = await Chain.new(
       registryAddr,
       phaseDuration,
+      requirePercentOfTokens,
     );
 
     ministroChain.setInstanceVar(chainInstance);
