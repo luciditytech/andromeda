@@ -11,3 +11,4 @@ coverage.json
 coverageEnv
 
 .env
+all.sol

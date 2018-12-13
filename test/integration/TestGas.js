@@ -1,20 +1,20 @@
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 
-import registerVerifiers from '../helpers/RegisterVerifiers';
+import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
-const ChainUtil = require('../proxy-contracts/proxyChain');
+const ChainUtil = require('../ministro-contracts/ministroChain');
 
 const Chain = artifacts.require('Chain');
 
-const proxyChain = ChainUtil();
+const ministroChain = ChainUtil();
 
 contract('Chain - test GAS', (accounts) => {
   let chainInstance;
 
   const verifiersCount = 9;
-
   const phaseDuration = verifiersCount * 5;
+  const requirePercentOfTokens = 70;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const {
@@ -22,16 +22,17 @@ contract('Chain - test GAS', (accounts) => {
   } = proposalsObj;
 
 
-  beforeEach(async () => {
+  before(async () => {
     const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
 
     chainInstance = await Chain.new(
       registryAddr,
       phaseDuration,
+      requirePercentOfTokens,
     );
 
-    proxyChain.setInstanceVar(chainInstance);
-    proxyChain.setFromVar(verifiersAddr[0]);
+    ministroChain.setInstanceVar(chainInstance);
+    ministroChain.setFromVar(verifiersAddr[0]);
 
     await mineUntilReveal(phaseDuration);
   });
@@ -39,7 +40,7 @@ contract('Chain - test GAS', (accounts) => {
 
   it('should be optimized', async () => {
     // NOTICE: testing gas optimization - all below calls are perform only to check,
-    // how much gas it cost to do each trasactions,
+    // how much gas it cost to do each transactions,
     // you can change the order or create another scenarios
     // to see gar results, go to `truffle.js` and uncomment mocha - reporter, then run:
     // truffle test <thisFile>

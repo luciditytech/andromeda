@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
-import "pokedex/contracts/VerifierRegistry.sol";
+import "digivice/contracts/VerifierRegistry.sol";
 import "./ChainConfig.sol";
 
 
@@ -20,7 +20,8 @@ contract Chain is ChainConfig, ReentrancyGuard {
     bytes32 proposal,
     uint256 counts,
     uint256 balance,
-    bool newWinner
+    bool newWinner,
+    uint256 totalTokenBalanceForShard
   );
 
 
@@ -40,7 +41,7 @@ contract Chain is ChainConfig, ReentrancyGuard {
     mapping (bytes32 => bool) uniqueBlindedProposals;
     mapping (address => Voter) voters;
 
-    // @dev shard => max vote
+    /// @dev shard => max votes
     mapping (uint256 => uint256) maxsVotes;
 
     // shard => proposal => counts
@@ -49,7 +50,10 @@ contract Chain is ChainConfig, ReentrancyGuard {
     // unfortunately we can't be able to delete this data to release gas, why?
     // because to do this, we need to save all the keys and then run loop for all keys... that may cause OOG
     // also storing keys is more gas consuming so... I made decision to stay with mapping and never delete history
-    mapping(uint256 => mapping(bytes32 => uint256)) counts;
+    mapping (uint256 => mapping(bytes32 => uint256)) counts;
+
+    /// @dev shard => total amount of tokens
+    mapping (uint256 => uint256) balancesPerShard;
 
     address[] verifierAddresses;
   }
@@ -59,9 +63,10 @@ contract Chain is ChainConfig, ReentrancyGuard {
 
   constructor (
     address _registryAddress,
-    uint8 _blocksPerPhase
+    uint8 _blocksPerPhase,
+    uint8 _minimumStakingTokenPercentage
   )
-  ChainConfig(_registryAddress, _blocksPerPhase)
+  ChainConfig(_registryAddress, _blocksPerPhase, _minimumStakingTokenPercentage)
   public {
 
   }
@@ -152,6 +157,14 @@ contract Chain is ChainConfig, ReentrancyGuard {
     ( , , created, balance, shard) = registry.verifiers(_verifier);
   }
 
+  function _getTotalTokenBalancePerShard(uint256 _shard)
+  internal
+  view
+  returns (uint256) {
+    VerifierRegistry registry = VerifierRegistry(registryAddress);
+    return registry.balancesPerShard(_shard);
+  }
+
   function getBlockHeight()
   public
   view
@@ -160,7 +173,7 @@ contract Chain is ChainConfig, ReentrancyGuard {
   }
 
 
-  /// @dev this function needs to be called ech time we successfully reveal a proposal
+  /// @dev this function needs to be called each time we successfully reveal a proposal
   function _updateCounters(uint256 _shard, bytes32 _proposal)
   internal {
     uint256 blockHeight = getBlockHeight();
@@ -188,7 +201,12 @@ contract Chain is ChainConfig, ReentrancyGuard {
       blocks[blockHeight].maxsVotes[_shard] = shardProposalsCount;
     }
 
-    emit LogUpdateCounters(msg.sender, blockHeight, _shard, _proposal, shardProposalsCount, balance, newWinner);
+    uint256 tokensBalance = _getTotalTokenBalancePerShard(_shard);
+    if (blocks[blockHeight].balancesPerShard[_shard] != tokensBalance) {
+      blocks[blockHeight].balancesPerShard[_shard] = tokensBalance;
+    }
+
+    emit LogUpdateCounters(msg.sender, blockHeight, _shard, _proposal, shardProposalsCount, balance, newWinner, tokensBalance);
   }
 
 
@@ -220,5 +238,17 @@ contract Chain is ChainConfig, ReentrancyGuard {
   function getBlockAddressCount(uint256 _blockHeight) external view returns (uint256) {
     return blocks[_blockHeight].verifierAddresses.length;
   }
+
+  function getStakeTokenBalanceFor(uint256 _blockHeight, uint256 _shard) external view returns (uint256) {
+    return blocks[_blockHeight].balancesPerShard[_shard];
+  }
+
+  function isElectionValid(uint256 _blockHeight, uint256 _shard) external view returns (bool) {
+    Block storage electionBlock = blocks[_blockHeight];
+    if (electionBlock.balancesPerShard[_shard] == 0) return false;
+    return electionBlock.maxsVotes[_shard] * 100 / electionBlock.balancesPerShard[_shard] >= minimumStakingTokenPercentage;
+  }
+
+
 
 }

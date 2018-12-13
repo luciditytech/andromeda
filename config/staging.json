@@ -10,6 +10,7 @@
     "tokenAddress": "0x1588d300a9995934aa9daae19be285a66eb46c1c"
   },
   "Chain": {
+    "verifierRegistryAddress": "0xdd2cd445c4b0d38addd83c2606b2fbb2a3210d2c",
     "blocksPerPhase": "10",
     "minimumStakingTokenPercentage": "70"
   }

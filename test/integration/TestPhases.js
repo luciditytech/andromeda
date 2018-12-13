@@ -1,16 +1,17 @@
 import { mineUntilPropose, mineUntilReveal, writeProcessMsg } from '../helpers/SpecHelper';
-import registerVerifiers from '../helpers/RegisterVerifiers';
+import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
 const Chain = artifacts.require('Chain');
 
-const ChainUtil = require('../proxy-contracts/proxyChain');
+const ChainUtil = require('../ministro-contracts/ministroChain');
 
-const proxyChain = ChainUtil();
+const ministroChain = ChainUtil();
 
 contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
   const phaseDuration = accounts.length - 1;
   const verifiersCount = phaseDuration;
+  const requirePercentOfTokens = 70;
 
   let chainInstance;
 
@@ -21,19 +22,20 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
     blindedProposals,
   } = createProposals(verifiersCount, accounts);
 
-  beforeEach(async () => {
+  before(async () => {
     const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
 
     chainInstance = await Chain.new(
       registryAddr,
       phaseDuration,
+      requirePercentOfTokens,
     );
 
-    proxyChain.setInstanceVar(chainInstance);
+    ministroChain.setInstanceVar(chainInstance);
   });
 
   describe('when we start at the begin of propose phase', async () => {
-    beforeEach(async () => {
+    before(async () => {
       await mineUntilReveal(phaseDuration);
       await mineUntilPropose(phaseDuration);
     });
@@ -46,7 +48,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
         // for very first time, we are already in propose,
         // so we have 1 block less - that is why we need to start from 1.
         for (let i = nonce ? 1 : 0; blindedProposals[i]; i += 1) {
-          awaits.push(proxyChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
           writeProcessMsg('proposing... ');
         }
 
@@ -56,7 +58,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
         awaits = [];
 
         for (let i = 0; proposals[i]; i += 1) {
-          awaits.push(proxyChain.reveal(
+          awaits.push(ministroChain.reveal(
             proposals[i],
             secrets[i],
             { from: verifiersAddr[i] },

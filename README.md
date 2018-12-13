@@ -1,31 +1,26 @@
-# Andromeda Smart Contracts
+# Andromeda
 
-A collection of contracts used for reaching off-chain consensus for marketing analytics
-and distributing payments to participating verifiers.
+**Generalized On-Chain Proof-of-Stake Consensus**
 
-## TODO
-- in the future we probably need to add another roots to `Election struct Block {...}` 
-i.e. for balances.
-- create interface for `VerifierRegistry.sol`, so we can use it in `Chain.sol`. 
-Using interface will save us gas.
+![Saint Seiya Shun](https://s3.amazonaws.com/cdn.lucidity.tech/images/andromeda3.gif "Saint Seiya Shun")
 
 ## Overview
+This repository is a collection of smart contracts to launch Sidechains which can store consensus-driven blocks of information on the Ethereum blockchain.
+Each consensus round is based on two phase voting via a commit-reveal mechanism.
 
-### Registration Process
-TODO
+Voting rounds are configured be N blocks in length.
 
-### Election Process
+The default is to run a new consensus round roughly every hour. 
+The proposing round, in which verifiers submit blinded proposals.
+The reveal round, in which verifiers reveal the raw consensus value and seed.
+The proposing and reveal round are each roughly 30 minutes.
 
-Detailed description you can find at Slab: 
-[election mechanism](https://lucidity.slab.com/posts/andromeda-election-mechanism-v-0-2-0-e9a79c2a).
+### Consensus Process
 
-General info:
 * Election has two phases: propose and reveal. Duration of each is: N blocks. 
 * Phases going cycle, every `N * 2` blocks new cycle start.
 * Noone is in charge of starting phases, its self-controlled mechanism.   
 * Each election root results are save to a block and kept on `Chain` contract at `blockHeight` index. 
-
-### Payment Process
 
 ## Development
 
@@ -111,7 +106,7 @@ Below some example screen, how it look like in Ethereum wallet:
 The hard part here is that you need have verifier who has token balance. 
 Below is a way how to do it:
  
-In truffle console `truffle console --network ropsten`:
+In truffle console `truffle console --network staging`:
 ```
 var chainAddr = '0x62Dcb16E90221B6312044efa7A073b2fed760a7F';
 var registryAddr = '0x98db23cbd024fE31D06d496CBdf870000d51BB08';
@@ -162,20 +157,43 @@ chain.getBlockRoot(255311,0);
 
 For Test Net you can simple use this:  
 ```
-truffle deploy --network ropsten
+truffle deploy --network staging
 ```
+Just please update `.env` with `key=value` pairs:
+```
+DEPLOY_DEV=true|false
+INFURA_ACCESS_TOKEN=...
+ROPSTEN_MNEMONIC=...
+ROPSTEN_PK=...
+```
+ before deploy. **DO NOT COMMIT THIS VALUES**.
+
 
 For Main Net I do recommend using ethereum wallet + bytecode. 
 It will be much much faster and cheaper. 
 
 #### Ropsten contracts
 
-* development (8 blocks per phase) 
-[0x62Dcb16E90221B6312044efa7A073b2fed760a7F](https://ropsten.etherscan.io/address/0x62Dcb16E90221B6312044efa7A073b2fed760a7F)
-* staging (140 blocks per phase) 
-[0x923afd068aed0156d788c10ea875656e095cbf4f](https://ropsten.etherscan.io/address/0x923afd068aed0156d788c10ea875656e095cbf4f)
-* production (140 blocks per phase) 
-[0xb2e0ac0e9f96eeb2c3f941e5b61666efbd40376e](https://ropsten.etherscan.io/address/0xb2e0ac0e9f96eeb2c3f941e5b61666efbd40376e)
+* development (10 blocks per phase) 
+[0x6a81f7788a3ae5207f8df2416f4d48939ac9deba](https://ropsten.etherscan.io/address/0x6a81f7788a3ae5207f8df2416f4d48939ac9deba#readContract)
+* staging (10 blocks per phase) 
+[0xe7615ad93bca725eff6350704112a64a3c95d783](https://ropsten.etherscan.io/address/0xe7615ad93bca725eff6350704112a64a3c95d783#readContract)
+* production (10 blocks per phase) 
+[0x1f09d05c460ee0a96a4b05a5923e7e248dc1421b](https://ropsten.etherscan.io/address/0x1f09d05c460ee0a96a4b05a5923e7e248dc1421b#readContract)
+
+
+#### Code verification
+
+1. run `truffle-flattener ./contracts/Chain.sol > all.sol` to combined solidity file.  
+ Review the file ie: you can remove pragma repetition, 
+ you can add some comments if you like.  
+1. Use Remix + Metamask to deploy contract.
+1. Go to your contract on Etherscan.io and choose **Verify And Publish**
+1. Copy content of `all.sol` in solidity contract code field
+1. Fill in other fields (constructor arguments should be already filled in)
+1. Click **Verify and Publish**... and your are done!
+
+In case verification fails, try to set [Optimization] field to `No`.
 
 ## Licensed under MIT.
 
