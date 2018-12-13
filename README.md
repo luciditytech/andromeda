@@ -174,12 +174,12 @@ It will be much much faster and cheaper.
 
 #### Ropsten contracts
 
-* development (8 blocks per phase) 
-[0x62Dcb16E90221B6312044efa7A073b2fed760a7F](https://ropsten.etherscan.io/address/0x62Dcb16E90221B6312044efa7A073b2fed760a7F)
-* staging (5 blocks per phase) 
-[0xdf4ed5b528604192fd583c8ccd070b07f537c15e](https://ropsten.etherscan.io/address/0xdf4ed5b528604192fd583c8ccd070b07f537c15e#readContract)
-* production (5 blocks per phase) 
-[0xff3aa2f5c76a8c53327ad5517ce7d4f2018971a3](https://ropsten.etherscan.io/address/0xff3aa2f5c76a8c53327ad5517ce7d4f2018971a3#readContract)
+* development (10 blocks per phase) 
+[0x6a81f7788a3ae5207f8df2416f4d48939ac9deba](https://ropsten.etherscan.io/address/0x6a81f7788a3ae5207f8df2416f4d48939ac9deba#readContract)
+* staging (10 blocks per phase) 
+[0xe7615ad93bca725eff6350704112a64a3c95d783](https://ropsten.etherscan.io/address/0xe7615ad93bca725eff6350704112a64a3c95d783#readContract)
+* production (10 blocks per phase) 
+[0x1f09d05c460ee0a96a4b05a5923e7e248dc1421b](https://ropsten.etherscan.io/address/0x1f09d05c460ee0a96a4b05a5923e7e248dc1421b#readContract)
 
 
 #### Code verification
@@ -192,6 +192,8 @@ It will be much much faster and cheaper.
 1. Copy content of `all.sol` in solidity contract code field
 1. Fill in other fields (constructor arguments should be already filled in)
 1. Click **Verify and Publish**... and your are done!
+
+In case verification fails, try to set [Optimization] field to `No`.
 
 ## Licensed under MIT.
 
