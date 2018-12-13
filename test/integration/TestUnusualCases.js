@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 
-import registerVerifiers from '../helpers/RegisterVerifiers';
+import { registerVerifiers } from '../helpers/RegisterVerifiers';
 
 import createProposals from '../samples/proposals';
 
@@ -20,6 +20,7 @@ contract('Chain - unusual cases', (accounts) => {
   // that testRPC creates 1 block per tx, if you will get revert because of invalid phase,
   // then increase phase duration
   const phaseDuration = verifiersCount * 3;
+  const requirePercentOfTokens = 70;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const {
@@ -33,6 +34,7 @@ contract('Chain - unusual cases', (accounts) => {
     chainInstance = await Chain.new(
       registryAddr,
       phaseDuration,
+      requirePercentOfTokens,
     );
 
     ministroChain.setInstanceVar(chainInstance);

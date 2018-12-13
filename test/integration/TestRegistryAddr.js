@@ -12,7 +12,7 @@ contract('Chain - testing registryAddress', (accounts) => {
 
   before(async () => {
     assert.notEqual(registryAddr, newRegistryAddr);
-    chainInstance = await Chain.new(registryAddr, 5);
+    chainInstance = await Chain.new(registryAddr, 5, 100);
     ministroChain.setInstanceVar(chainInstance);
     ministroChain.setFromVar(accounts[0]);
   });

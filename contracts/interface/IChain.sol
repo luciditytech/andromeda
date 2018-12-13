@@ -5,9 +5,9 @@ pragma solidity ^0.4.24;
 ///      Use it instead of importing whole contract. It will save you gas.
 interface IChain {
 
-  event LogPropose(address indexed sender, bytes32 blindedProposal, uint256 shard);
+  event LogPropose(address indexed sender, bytes32 blindedProposal, uint256 shard, uint256 balance);
   event LogReveal(address indexed sender, bytes32 proposal);
-  event LogUpdateCounters(uint256 shard, bytes32 proposal, uint256 counts, bool newWinner);
+  event LogUpdateCounters(uint256 shard, bytes32 proposal, uint256 counts, bool newWinner, uint256 tokens);
   event LogExtendElection(uint256 previousStartBlock, uint256 newStartBlock);
 
 
@@ -22,5 +22,8 @@ interface IChain {
 
   function getCycleBlock() external view returns (uint);
   function getFirstCycleBlock() external view returns (uint);
+
+  function getStakeTokens(uint256 _blockHeight, uint256 _shard) external view returns (uint256);
+  function isElectionValid(uint256 _blockHeight, uint256 _shard) external view returns (bool);
 
 }

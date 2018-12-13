@@ -1,6 +1,7 @@
 import chai from 'chai';
 import web3Utils from 'web3-utils';
 import ministroExecute from 'ministro-tool';
+import BigNumber from 'bignumber.js';
 
 const { assert } = chai;
 
@@ -69,6 +70,7 @@ function ProxyContract() {
 
       const logUpdateCounters = results.LogUpdateCounters[0];
       assert.notEqual(logUpdateCounters.counts.toString(10), '0', 'counts can not be zero');
+      assert.isTrue(BigNumber(logUpdateCounters.totalTokenBalanceForShard).gt(0), 'totalTokenBalanceForShard must be gt zero');
 
       const voter = await app.getBlockVoter(logReveal.blockHeight, txAttrLocal.from);
 
@@ -82,6 +84,13 @@ function ProxyContract() {
         assert.strictEqual(logUpdateCounters.shard.toString(10), shard, 'base on cached value, shard in invalid');
         assert.strictEqual(voter.shard, shard, 'shard is invalid');
       }
+
+      const stateTokens = await app.getStakeTokenBalanceFor(
+        logUpdateCounters.blockHeight,
+        logUpdateCounters.shard,
+      );
+      assert.isTrue(BigNumber(logUpdateCounters.totalTokenBalanceForShard).eq(stateTokens), 'invalid state tokens value');
+
 
       assert.strictEqual(logUpdateCounters.proposal, proposal, 'invalid proposal');
       assert.strictEqual(voter.proposal, proposal, 'proposal is not saved on blockchain');
@@ -132,13 +141,26 @@ function ProxyContract() {
     async (blockHeight, i) => app.instance.getBlockAddress.call(blockHeight, i);
 
   app.getBlockMaxVotes = async (blockHeight, shard) =>
-    app.instance.getBlockMaxVotes.call(blockHeight, shard);
+    app.instance.getBlockMaxVotes.call(blockHeight.toString(), shard.toString());
 
   app.getBlockCount = async (blockHeight, shard, proposal) =>
     app.instance.getBlockCount.call(blockHeight, shard, proposal);
 
   app.getBlockRoot =
     async (blockHeight, shard) => app.instance.getBlockRoot.call(blockHeight, shard);
+
+  app.minimumStakingTokenPercentage = async () => app.instance.minimumStakingTokenPercentage.call();
+
+  app.getStakeTokenBalanceFor =
+    async (blockHeight, shard) => app.instance.getStakeTokenBalanceFor.call(
+      blockHeight.toString(),
+      shard.toString(),
+    );
+
+  app.isElectionValid = async (blockHeight, shard) => app.instance.isElectionValid.call(
+    blockHeight.toString(),
+    shard.toString(),
+  );
 
   return app;
 }

@@ -1,6 +1,6 @@
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 
-import registerVerifiers from '../helpers/RegisterVerifiers';
+import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
 const ChainUtil = require('../ministro-contracts/ministroChain');
@@ -13,8 +13,8 @@ contract('Chain - test GAS', (accounts) => {
   let chainInstance;
 
   const verifiersCount = 9;
-
   const phaseDuration = verifiersCount * 5;
+  const requirePercentOfTokens = 70;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const {
@@ -28,6 +28,7 @@ contract('Chain - test GAS', (accounts) => {
     chainInstance = await Chain.new(
       registryAddr,
       phaseDuration,
+      requirePercentOfTokens,
     );
 
     ministroChain.setInstanceVar(chainInstance);

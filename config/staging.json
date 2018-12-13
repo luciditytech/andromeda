@@ -11,6 +11,7 @@
   },
   "Chain": {
     "verifierRegistryAddress": "0xcf087e3cd8a747aa4fc51e8a38256188ab727317",
-    "blocksPerPhase": "5"
+    "blocksPerPhase": "10",
+    "minimumStakingTokenPercentage": "70"
   }
 }

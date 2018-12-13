@@ -30,7 +30,7 @@
     "babel-register": "^6.26.0",
     "bignumber.js": "^7.2.1",
     "bip39": "2.5.0",
-    "digivice": "git@github.com:luciditytech/digivice.git#develop",
+    "digivice": "git@github.com:luciditytech/digivice.git#1fabf07d10171674804ea18bc630cc41976427d1",
     "dotenv": "^6.1.0",
     "ethereumjs-abi": "^0.6.5",
     "ethereumjs-wallet": "^0.6.2",
