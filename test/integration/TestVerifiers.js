@@ -36,6 +36,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
       registryAddr,
       phaseDuration,
       requirePercentOfTokens,
+      true,
     );
 
     ministroChain.setInstanceVar(chainInstance);

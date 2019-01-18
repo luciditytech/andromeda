@@ -117,6 +117,24 @@ function ProxyContract() {
     return results;
   };
 
+  app.updateMinimumStakingTokenPercentage = async (percent, txAttr, expectThrow) => {
+    const txAttrLocal = app.getTxAttr(txAttr);
+
+    const action = () => app.instance.updateMinimumStakingTokenPercentage(percent, txAttrLocal);
+
+    const results = await app.executeAction(action, txAttrLocal, 1, 'LogChainConfig', expectThrow);
+
+    if (!expectThrow) {
+      const logChainConfig = results.LogChainConfig[0];
+      assert.strictEqual(logChainConfig.requirePercentOfTokens.toString(), percent.toString(), 'invalid minimumStakingTokenPercentage');
+
+      const minimumStakingTokenPercentage = await app.minimumStakingTokenPercentage();
+      assert.strictEqual(minimumStakingTokenPercentage.toString(), percent.toString(), 'minimumStakingTokenPercentage is not saved on blockchain');
+    }
+
+    return results;
+  };
+
   app.getBlockVoter = async (blockHeight, address) => {
     assert.isNotEmpty(address);
     const res = await app.instance.getBlockVoter(blockHeight, address);

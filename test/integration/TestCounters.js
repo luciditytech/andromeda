@@ -38,6 +38,7 @@ contract('Chain - testing counters', (accounts) => {
       registryAddr,
       phaseDuration,
       requirePercentOfTokens,
+      true,
     );
 
     ministroChain.setInstanceVar(chainInstance);

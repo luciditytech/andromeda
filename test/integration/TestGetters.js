@@ -29,6 +29,7 @@ contract('Chain - testing getters', (accounts) => {
       registryAddr,
       phaseDuration,
       requirePercentOfTokens,
+      true,
     );
 
     ministroChain.setInstanceVar(chainInstance);

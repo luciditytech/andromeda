@@ -35,6 +35,7 @@ contract('Chain - unusual cases', (accounts) => {
       registryAddr,
       phaseDuration,
       requirePercentOfTokens,
+      true,
     );
 
     ministroChain.setInstanceVar(chainInstance);

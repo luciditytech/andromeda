@@ -29,6 +29,7 @@ contract('Chain - test GAS', (accounts) => {
       registryAddr,
       phaseDuration,
       requirePercentOfTokens,
+      true,
     );
 
     ministroChain.setInstanceVar(chainInstance);

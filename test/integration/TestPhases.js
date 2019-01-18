@@ -29,6 +29,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
       registryAddr,
       phaseDuration,
       requirePercentOfTokens,
+      true,
     );
 
     ministroChain.setInstanceVar(chainInstance);
