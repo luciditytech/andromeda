@@ -33,6 +33,7 @@ module.exports = function(deployer, network, accounts) {
     verifierRegistryAddress,
     config.Chain.blocksPerPhase,
     config.Chain.minimumStakingTokenPercentage,
-    options
+    false,
+    options,
   );
 };

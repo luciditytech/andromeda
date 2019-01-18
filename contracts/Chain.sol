@@ -64,9 +64,10 @@ contract Chain is ChainConfig, ReentrancyGuard {
   constructor (
     address _registryAddress,
     uint8 _blocksPerPhase,
-    uint8 _minimumStakingTokenPercentage
+    uint8 _minimumStakingTokenPercentage,
+    bool _updateMinimumStakingTokenPercentageEnabled
   )
-  ChainConfig(_registryAddress, _blocksPerPhase, _minimumStakingTokenPercentage)
+  ChainConfig(_registryAddress, _blocksPerPhase, _minimumStakingTokenPercentage, _updateMinimumStakingTokenPercentageEnabled)
   public {
 
   }

@@ -35,18 +35,12 @@ contract('Chain: testing validation of election', (accounts) => {
       registryAddr,
       phaseDuration,
       requirePercentOfTokens,
+      true,
     );
 
     ministroChain.setInstanceVar(chainInstance);
 
     await mineUntilReveal(phaseDuration);
-  });
-
-  it('minimumStakingTokenPercentage should have valid initial state', async () => {
-    assert.isTrue(
-      BigNumber(requirePercentOfTokens).eq(await ministroChain.minimumStakingTokenPercentage()),
-      'invalid initial value for minimumStakingTokenPercentage',
-    );
   });
 
   it('election should be invalid at begin', async () => {

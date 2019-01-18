@@ -8,6 +8,8 @@ import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 ///      `proposeDuration` and `revealDuration` are durations in blocks (not timestamp).
 contract ChainConfig is Ownable {
 
+  bool public updateMinimumStakingTokenPercentageEnabled;
+
   using SafeMath for uint256;
 
   uint8 public blocksPerPhase;
@@ -27,11 +29,16 @@ contract ChainConfig is Ownable {
     _;
   }
 
-  event LogChainConfig(uint8 blocksPerPhase, uint8 requirePercentOfTokens);
+  event LogChainConfig(uint8 blocksPerPhase, uint8 requirePercentOfTokens, bool updateMinimumStakingTokenPercentageEnabled);
 
   event LogUpdateRegistryAddress(address indexed newRegistryAddress);
 
-  constructor (address _registryAddress, uint8 _blocksPerPhase, uint8 _minimumStakingTokenPercentage)
+  constructor (
+    address _registryAddress,
+    uint8 _blocksPerPhase,
+    uint8 _minimumStakingTokenPercentage,
+    bool _updateMinimumStakingTokenPercentageEnabled
+  )
   public {
 
     require(_blocksPerPhase > 0, "_blocksPerPhase can't be empty");
@@ -41,7 +48,9 @@ contract ChainConfig is Ownable {
     require(_minimumStakingTokenPercentage <= 100, "_minimumStakingTokenPercentage can't be over 100%");
     minimumStakingTokenPercentage = _minimumStakingTokenPercentage;
 
-    emit LogChainConfig(_blocksPerPhase, _minimumStakingTokenPercentage);
+    updateMinimumStakingTokenPercentageEnabled = _updateMinimumStakingTokenPercentageEnabled;
+
+    emit LogChainConfig(_blocksPerPhase, _minimumStakingTokenPercentage, _updateMinimumStakingTokenPercentageEnabled);
 
 
     require(_registryAddress != address(0), "registry address is empty");
@@ -57,6 +66,22 @@ contract ChainConfig is Ownable {
     require(_registryAddress != address(0), "_registryAddress can't be empty");
     registryAddress = _registryAddress;
     emit LogUpdateRegistryAddress(_registryAddress);
+    return true;
+  }
+
+
+  function updateMinimumStakingTokenPercentage(uint8 _minimumStakingTokenPercentage)
+  public
+  onlyOwner
+  returns (bool) {
+    require(updateMinimumStakingTokenPercentageEnabled, "update not available");
+
+    require(_minimumStakingTokenPercentage > 0, "_minimumStakingTokenPercentage can't be empty");
+    require(_minimumStakingTokenPercentage <= 100, "_minimumStakingTokenPercentage can't be over 100%");
+    minimumStakingTokenPercentage = _minimumStakingTokenPercentage;
+
+    emit LogChainConfig(blocksPerPhase, _minimumStakingTokenPercentage, true);
+
     return true;
   }
 
