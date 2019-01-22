@@ -92,11 +92,11 @@ contract Chain is ChainConfig, ReentrancyGuard {
     require(_blindedProposal != bytes32(0), "_blindedProposal is empty");
     require(!blocks[blockHeight].uniqueBlindedProposals[_blindedProposal], "blindedProposal not unique");
 
-    bool created;
+    bool active;
     uint256 balance;
     uint256 shard;
-    (created, balance, shard) = _getVerifierInfo(msg.sender);
-    require(created, "verifier is not in the registry");
+    (active, balance, shard) = _getVerifierInfo(msg.sender);
+    require(active, "verifier is not in the registry or not active");
     require(balance > 0, "verifier has no right to propose");
 
 
@@ -148,14 +148,14 @@ contract Chain is ChainConfig, ReentrancyGuard {
   }
 
   /// @dev gets information about verifier from global registry
-  /// @return (bool created, uint256 shard)
+  /// @return (bool active, uint256 balance, uint256 shard)
   function _getVerifierInfo(address _verifier)
   internal
   view
-  returns (bool created, uint256 balance, uint256 shard) {
+  returns (bool active, uint256 balance, uint256 shard) {
     VerifierRegistry registry = VerifierRegistry(registryAddress);
 
-    ( , , created, balance, shard) = registry.verifiers(_verifier);
+    ( , , active, balance, shard) = registry.verifiers(_verifier);
   }
 
   function _getTotalTokenBalancePerShard(uint256 _shard)

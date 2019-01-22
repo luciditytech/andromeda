@@ -20,12 +20,17 @@ async function verifiersPerShard() {
   return res.toString();
 }
 
+function verifierCreated(verifier) {
+  let v = verifier;
+  if (typeof v.id === 'undefined') v = formatVerifier.format(v);
+  return v.id !== '0x0000000000000000000000000000000000000000';
+}
 
 async function verifierExists(addr) {
   const registry = await VerifierRegistry.deployed();
   let res = await registry.verifiers.call(addr);
   res = formatVerifier.format(res);
-  return res.created;
+  return verifierCreated(res);
 }
 
 // @return address of registry
@@ -89,7 +94,7 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   const mapResults = verifiersAddr.map(async (addr) => {
     let res = await registry.verifiers.call(addr);
     res = formatVerifier.format(res);
-    assert.isTrue(res.created, 'verifier is not in registry');
+    assert.isTrue(verifierCreated(res), 'verifier is not in registry');
     assert.notEqual(parseInt(res.balance, 10), 0, 'verifier must have balance');
   });
   await Promise.all(mapResults);
@@ -98,8 +103,19 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   return registry.address;
 }
 
+
+async function updateActiveStatus(regOwner, verifiersAddr, activeStatus) {
+  const registry = await VerifierRegistry.deployed();
+
+  await registry.updateActiveStatus(verifiersAddr, activeStatus, { from: regOwner });
+
+  return await verifierExists(verifiersAddr) === activeStatus;
+}
+
+
 export {
   registerVerifiers,
   balancesPerShard,
   verifiersPerShard,
+  updateActiveStatus,
 };

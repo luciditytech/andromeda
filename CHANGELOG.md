@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - option to update `minimumStakingTokenPercentage`.
 
+### Changed
+- when verifier proposing, `Chain` checks, if verifier is active instead 
+  of if it is only created.
+
 ## [0.3.0] - 2018-12-13
 ### Added:
 - election verification

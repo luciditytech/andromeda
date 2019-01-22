@@ -174,12 +174,12 @@ It will be much much faster and cheaper.
 
 #### Ropsten contracts
 
-* development (10 blocks per phase) 
-[0xdb9bcf876ec415ac1e94994f937ef15805f968a9](https://ropsten.etherscan.io/address/0xdb9bcf876ec415ac1e94994f937ef15805f968a9#readContract)
-* staging (10 blocks per phase) 
-[0xbe4d86313c9f79d3c074049008c851e3532b512f](https://ropsten.etherscan.io/address/0xbe4d86313c9f79d3c074049008c851e3532b512f#readContract)
-* production (10 blocks per phase) 
-[0x8440eee8fbcf5192e6a347bc742a86fd5cdb9753](https://ropsten.etherscan.io/address/0x8440eee8fbcf5192e6a347bc742a86fd5cdb9753#readContract)
+* development
+[0x17ffd54f82482858bcea63d4e54a941c24d9e5b0](https://ropsten.etherscan.io/address/0x17ffd54f82482858bcea63d4e54a941c24d9e5b0#readContract)
+* staging
+[0xfb97e68081faec9b2105a07fccd11306f3150acd](https://ropsten.etherscan.io/address/0xfb97e68081faec9b2105a07fccd11306f3150acd#readContract)
+* production 
+[0xb3b060d8f67be00b09734c67edc5198f0d3162fe](https://ropsten.etherscan.io/address/0xb3b060d8f67be00b09734c67edc5198f0d3162fe#readContract)
 
 
 #### Code verification

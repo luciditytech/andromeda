@@ -5,7 +5,7 @@ function formatVerifier(ethResponse) {
   return {
     id: ethResponse[0],
     location: ethResponse[1],
-    created: ethResponse[2],
+    active: ethResponse[2],
     balance: ethResponse[3].toString(10),
     shard: ethResponse[4].toString(10),
   };

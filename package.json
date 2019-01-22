@@ -30,7 +30,7 @@
     "babel-register": "^6.26.0",
     "bignumber.js": "^7.2.1",
     "bip39": "2.5.0",
-    "digivice": "git@github.com:luciditytech/digivice.git#1fabf07d10171674804ea18bc630cc41976427d1",
+    "digivice": "git@github.com:luciditytech/digivice.git#develop",
     "dotenv": "^6.1.0",
     "ethereumjs-abi": "^0.6.5",
     "ethereumjs-wallet": "^0.6.2",
@@ -43,6 +43,7 @@
     "truffle-flattener": "^1.2.9",
     "truffle-hdwallet-provider": "0.0.6",
     "truffle-wallet-provider": "0.0.5",
+    "typedarray-to-buffer": "^3.1.5",
     "zeppelin-solidity": "^1.12.0"
   },
   "devDependencies": {
