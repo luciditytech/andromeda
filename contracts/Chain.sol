@@ -61,6 +61,9 @@ contract Chain is ChainConfig, ReentrancyGuard {
   /// @dev blockHeight => Block - results of each elections will be saved here: one block (array element) per election
   mapping (uint256 => Block) blocks;
 
+  /// @dev shard => blockHeight
+  mapping (uint256 => uint256) public initialBlockHeights;
+
   constructor (
     address _registryAddress,
     uint8 _blocksPerPhase,
@@ -110,6 +113,10 @@ contract Chain is ChainConfig, ReentrancyGuard {
     voter.blindedProposal = _blindedProposal;
     voter.shard = shard;
     voter.balance = balance;
+
+    if (initialBlockHeights[shard] == 0) {
+      initialBlockHeights[shard] = blockHeight;
+    }
 
     emit LogPropose(msg.sender, blockHeight, _blindedProposal, shard, balance);
 

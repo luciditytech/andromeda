@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Added
 - option to update `minimumStakingTokenPercentage`.
+- `initialBlockHeights` to set the initial block-height per shard
 
 ### Changed
-- when verifier proposing, `Chain` checks, if verifier is active instead 
+- when verifier proposing, `Chain` checks, if verifier is active instead
   of if it is only created.
 
 ## [0.3.0] - 2018-12-13
@@ -27,7 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Chain interface
 - Getters for reading `blocks` structure
 - update of contract code to be consistent with Solidity 0.4.24
-- Remove commissioner and introduce election cycle with two phases: propose and reveal 
+- Remove commissioner and introduce election cycle with two phases: propose and reveal
 
 ## [0.1.0] - 2018-04-12
 ### Added:
