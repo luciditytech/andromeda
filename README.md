@@ -10,17 +10,17 @@ Each consensus round is based on two phase voting via a commit-reveal mechanism.
 
 Voting rounds are configured be N blocks in length.
 
-The default is to run a new consensus round roughly every hour. 
+The default is to run a new consensus round roughly every hour.
 The proposing round, in which verifiers submit blinded proposals.
 The reveal round, in which verifiers reveal the raw consensus value and seed.
 The proposing and reveal round are each roughly 30 minutes.
 
 ### Consensus Process
 
-* Election has two phases: propose and reveal. Duration of each is: N blocks. 
+* Election has two phases: propose and reveal. Duration of each is: N blocks.
 * Phases going cycle, every `N * 2` blocks new cycle start.
 * Noone is in charge of starting phases, its self-controlled mechanism.   
-* Each election root results are save to a block and kept on `Chain` contract at `blockHeight` index. 
+* Each election root results are save to a block and kept on `Chain` contract at `blockHeight` index.
 
 ## Development
 
@@ -58,7 +58,7 @@ ganache-cli
 #### Test with code coverage
 
 Solidity coverage is configured to automatically run testrpc on port 8545.
-Please remember to turn off other RPC client before you go for this test. 
+Please remember to turn off other RPC client before you go for this test.
 
 ### Compiling and migrating smart contracts
 
@@ -70,22 +70,22 @@ Please remember to turn off other RPC client before you go for this test.
 * `truffle test` or `npm run test`
 * check for linters errors: `npm run lint`
 
-Please remember, that you can configure the `TestVerifiers.js` to use different number 
-of verifiers for performing tests. Please run this test against different values i.e: 
+Please remember, that you can configure the `TestVerifiers.js` to use different number
+of verifiers for performing tests. Please run this test against different values i.e:
 1, 2 and 9.
- 
+
 * With code coverage: `npm run coverage`
 
 ### Issues during tests
 
 * `Error: ENOENT: no such file or directory, open './allFiredEvents'`
 
-If you experience above issue during coverage test, then create file 
+If you experience above issue during coverage test, then create file
 `touch ./allFiredEvents` each time before you run test command, it should help.
 
 * Test hang/freeze during execution  
 
-I think this might be connected to the fact, that we mining a lot during tests 
+I think this might be connected to the fact, that we mining a lot during tests
 to move from one to next phase. If this will happen, just cancel the test and run again.    
 
 ### Testing on testnet
@@ -93,19 +93,19 @@ to move from one to next phase. If this will happen, just cancel the test and ru
 This is tricky part, because you don't have access to build-in accounts full of ETH :)
 You need to create accounts or use coinbase.   
 
-Along with truffle console, you can use Ethereum wallet. 
+Along with truffle console, you can use Ethereum wallet.
 It allows you to watch contracts (base on provided address and abi).
-It will display you all events, help you use getter functions and also 
+It will display you all events, help you use getter functions and also
 it will show you in real time current cycle block - this is helpful.  
 Below some example screen, how it look like in Ethereum wallet:
 
  ![chain view](./eth-wallet-chain.png)
- 
+
 #### Testing in truffle console
 
-The hard part here is that you need have verifier who has token balance. 
+The hard part here is that you need have verifier who has token balance.
 Below is a way how to do it:
- 
+
 In truffle console `truffle console --network staging`:
 ```
 var chainAddr = '0x62Dcb16E90221B6312044efa7A073b2fed760a7F';
@@ -169,23 +169,23 @@ ROPSTEN_PK=...
  before deploy. **DO NOT COMMIT THIS VALUES**.
 
 
-For Main Net I do recommend using ethereum wallet + bytecode. 
-It will be much much faster and cheaper. 
+For Main Net I do recommend using ethereum wallet + bytecode.
+It will be much much faster and cheaper.
 
 #### Ropsten contracts
 
 * development
-[0x17ffd54f82482858bcea63d4e54a941c24d9e5b0](https://ropsten.etherscan.io/address/0x17ffd54f82482858bcea63d4e54a941c24d9e5b0#readContract)
+[0x91d8746c3d25dec812bec7082870e6c765ef9c31](https://ropsten.etherscan.io/address/0x17ffd54f82482858bcea63d4e54a941c24d9e5b0#readContract)
 * staging
-[0xfb97e68081faec9b2105a07fccd11306f3150acd](https://ropsten.etherscan.io/address/0xfb97e68081faec9b2105a07fccd11306f3150acd#readContract)
-* production 
-[0xb3b060d8f67be00b09734c67edc5198f0d3162fe](https://ropsten.etherscan.io/address/0xb3b060d8f67be00b09734c67edc5198f0d3162fe#readContract)
+[0xfb97e68081faec9b2105a07fccd11306f3150acd](https://ropsten.etherscan.io/address/0xb3df87beb7035f551709aa6bde7daa4e13ce1e51#readContract)
+* production
+[0xd370f07ec82fd3615b19d912244a459c02c7625d](https://ropsten.etherscan.io/address/0xb3b060d8f67be00b09734c67edc5198f0d3162fe#readContract)
 
 
 #### Code verification
 
 1. run `truffle-flattener ./contracts/Chain.sol > all.sol` to combined solidity file.  
- Review the file ie: you can remove pragma repetition, 
+ Review the file ie: you can remove pragma repetition,
  you can add some comments if you like.  
 1. Use Remix + Metamask to deploy contract.
 1. Go to your contract on Etherscan.io and choose **Verify And Publish**
