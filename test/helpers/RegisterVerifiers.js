@@ -70,7 +70,7 @@ async function registerVerifiers(regOwner, verifiersAddr) {
     const mapResults = [];
     verifiersAddr.map(async (addr, i) => {
       if (!amounts[addr]) return;
-      mapResults.push(registry.create(`192.168.1.${i + 1}`, { from: addr }));
+      mapResults.push(registry.create(`name.${i + 1}`, `192.168.1.${i + 1}`, { from: addr }));
     });
     await Promise.all(mapResults);
   } catch (e) {
