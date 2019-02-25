@@ -2,6 +2,9 @@ import BigNumber from 'bignumber.js';
 import EthQuery from 'ethjs-query';
 import { blocksToWaitForPropose, blocksToWaitForReveal } from './CycleFunctions';
 
+const HttpProvider = require('ethjs-provider-http');
+web3.currentProvider = new HttpProvider('http://localhost:8545');
+
 const ethQuery = new EthQuery(web3.currentProvider);
 
 const moveChar = () => {

@@ -13,8 +13,7 @@ const ChainUtil = require('../ministro-contracts/ministroChain');
 const ministroChain = ChainUtil();
 const ethQuery = new EthQuery(web3.currentProvider);
 
-contract('Chain - testing counters', (accounts) => {/*
-
+contract('Chain - testing counters', (accounts) => {
   let chainInstance;
   // for this test we need exactly 3
   const verifiersCount = 3;
@@ -245,5 +244,5 @@ contract('Chain - testing counters', (accounts) => {/*
         });
       });
     });
-  });*/
+  });
 });

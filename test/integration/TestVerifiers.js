@@ -20,7 +20,7 @@ const verifiersCount = 3;
 const phaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
-contract('Chain: 1 or more verifiers scenario (base on configuration)', (accounts) => {/*
+contract('Chain: 1 or more verifiers scenario (base on configuration)', (accounts) => {
   let chainInstance;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
@@ -165,7 +165,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
           it('should NOT be possible to reveal using wrong secret', async () => {
             const awaits = [];
             for (let i = 0; i < verifiersCount; i += 1) {
-              awaits.push(ministroChain.reveal(proposals[i], `${secrets[i]}_`, { from: verifiersAddr[i] }, true));
+              awaits.push(ministroChain.reveal(proposals[i], `0x${secrets[i].substring(2).split('').reverse().join('')}`, { from: verifiersAddr[i] }, true));
             }
             await Promise.all(awaits);
           });
@@ -241,5 +241,5 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         });
       });
     });
-  });*/
+  });
 });

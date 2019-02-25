@@ -8,7 +8,7 @@ const ChainUtil = require('../ministro-contracts/ministroChain');
 
 const ministroChain = ChainUtil();
 
-contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {/*
+contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
   const phaseDuration = accounts.length - 1;
   const verifiersCount = phaseDuration;
   const requirePercentOfTokens = 70;
@@ -75,5 +75,5 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {/*
         nonce = false;
       }
     });
-  });*/
+  });
 });

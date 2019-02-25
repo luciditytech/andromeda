@@ -19,7 +19,7 @@ const requirePercentOfTokens = 70;
 let logPropose;
 let balanceForShard;
 
-contract('Chain: testing validation of election', (accounts) => {/*
+contract('Chain: testing validation of election', (accounts) => {
   let chainInstance;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
@@ -123,5 +123,5 @@ contract('Chain: testing validation of election', (accounts) => {/*
         }
       });
     });
-  });*/
+  });
 });

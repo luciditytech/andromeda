@@ -14,7 +14,6 @@ const phaseDuration = 5 * verifiersCount * 2;
 const requirePercentOfTokens = 70;
 
 contract('Chain: testing active/non active verifiers', (accounts) => {
-  /*
   let chainInstance;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
@@ -118,5 +117,5 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
         });
       });
     });
-  });*/
+  });
 });

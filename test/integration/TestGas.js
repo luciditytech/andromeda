@@ -9,7 +9,7 @@ const Chain = artifacts.require('Chain');
 
 const ministroChain = ChainUtil();
 
-contract('Chain - test GAS', (accounts) => {/*
+contract('Chain - test GAS', (accounts) => {
   let chainInstance;
 
   const verifiersCount = 9;
@@ -58,5 +58,5 @@ contract('Chain - test GAS', (accounts) => {/*
 
     await mineUntilPropose(phaseDuration);
     await chainInstance.propose(blindedProposals[0], { from: verifiersAddr[0] });
-  });*/
+  });
 });

@@ -3,11 +3,9 @@ require('babel-polyfill');
 
 require('dotenv').config();
 
-
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const Wallet = require('ethereumjs-wallet');
 const WalletProvider = require('truffle-wallet-provider');
-
 
 let ropstenProvider;
 
@@ -15,7 +13,7 @@ if (process.env.DEPLOY_DEV === 'true') {
   ropstenProvider = null;
 } else if (typeof process.env.ROPSTEN_MNEMONIC !== 'undefined') {
   ropstenProvider = new HDWalletProvider(
-    process.env.ROPSTEN_MNEMONIC,
+    process.env.ROPStruffle-hdwallet-providerTEN_MNEMONIC,
     `https://ropsten.infura.io/v3/${process.env.INFURA_ACCESS_TOKEN}`,
   );
 } else if (typeof process.env.ROPSTEN_PK !== 'undefined') {
