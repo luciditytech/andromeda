@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `initialBlockHeights` to set the initial block-height per shard
 
 ### Changed
+- smart contracts are complient with solidity 0.5
+- unit tests are complient with web3 1.0
 - when verifier proposing, `Chain` checks, if verifier is active instead
   of if it is only created.
 

@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js';
 import EthQuery from 'ethjs-query';
 import { blocksToWaitForPropose, blocksToWaitForReveal } from './CycleFunctions';
 
+web3.providers.HttpProvider.prototype.sendAsync = web3.providers.HttpProvider.prototype.send;
 const ethQuery = new EthQuery(web3.currentProvider);
 
 const moveChar = () => {

@@ -119,7 +119,7 @@ var humanToken = HumanStandardToken.at(tokenAddr);
 
 # you can use any account as long as you can unlock it  
 var verifier = eth.web3.accounts[0];
-registry.create('192.168.8.8', { from: verifier }));
+registry.create('name', 192.168.8.8', { from: verifier }));
 ```
 
 Lets check, if verifier has a balance

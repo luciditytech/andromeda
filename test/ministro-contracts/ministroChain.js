@@ -108,10 +108,10 @@ function ProxyContract() {
 
     if (!expectThrow) {
       const logUpdateRegistryAddress = results.LogUpdateRegistryAddress[0];
-      assert.strictEqual(logUpdateRegistryAddress.newRegistryAddress, registryAddress, 'invalid newRegistryAddress');
+      assert.strictEqual(logUpdateRegistryAddress.newRegistryAddress.toLowerCase(), registryAddress, 'invalid newRegistryAddress');
 
       const registry = await app.registryAddress();
-      assert.strictEqual(registry, registryAddress, 'registryAddress is not saved on blockchain');
+      assert.strictEqual(registry.toLowerCase(), registryAddress, 'registryAddress is not saved on blockchain');
     }
 
     return results;

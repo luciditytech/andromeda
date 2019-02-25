@@ -4,10 +4,11 @@ function formatVerifier(ethResponse) {
   // https://github.com/luciditytech/digivice/blob/develop/contracts/VerifierRegistry.sol
   return {
     id: ethResponse[0],
-    location: ethResponse[1],
-    active: ethResponse[2],
-    balance: ethResponse[3].toString(10),
-    shard: ethResponse[4].toString(10),
+    name: ethResponse[1],
+    location: ethResponse[2],
+    active: ethResponse[3],
+    balance: ethResponse[4].toString(10),
+    shard: ethResponse[5].toString(10),
   };
 }
 
