@@ -1,6 +1,6 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
-import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
 import "digivice/contracts/VerifierRegistry.sol";
 import "./ChainConfig.sol";
 
@@ -162,7 +162,7 @@ contract Chain is ChainConfig, ReentrancyGuard {
   returns (bool active, uint256 balance, uint256 shard) {
     VerifierRegistry registry = VerifierRegistry(registryAddress);
 
-    ( , , active, balance, shard) = registry.verifiers(_verifier);
+    ( , , , active, balance, shard) = registry.verifiers(_verifier);
   }
 
   function _getTotalTokenBalancePerShard(uint256 _shard)

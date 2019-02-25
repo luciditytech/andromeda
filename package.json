@@ -30,7 +30,7 @@
     "babel-register": "^6.26.0",
     "bignumber.js": "^7.2.1",
     "bip39": "2.5.0",
-    "digivice": "git@github.com:luciditytech/digivice.git#6f846bc8792d4d65ae85d4a2d0dafae7ec773a03",
+    "digivice": "git@github.com:luciditytech/digivice.git#1d884c158ffbfe4e113af7a7f19ea8beb0236ff0",
     "dotenv": "^6.1.0",
     "ethereumjs-abi": "^0.6.5",
     "ethereumjs-wallet": "^0.6.2",
@@ -40,7 +40,8 @@
     "jssha": "^2.3.1",
     "ministro-tool": "^0.1.2",
     "openzeppelin-solidity": "^2.1.2",
-    "token-sale-contracts": "git@github.com:luciditytech/token-sale-contracts.git#a7553ecc330e38c612f0319c61a3df5a3fea670c",
+    "token-sale-contracts": "git@github.com:luciditytech/token-sale-contracts.git#63fc171e3edf9f8781430260290df64370c075a5",
+    "truffle": "^5.0.5",
     "truffle-flattener": "^1.2.9",
     "truffle-hdwallet-provider": "0.0.6",
     "truffle-wallet-provider": "0.0.5",
@@ -58,7 +59,6 @@
     "pify": "^4.0.0",
     "solidity-coverage": "^0.5.5",
     "solium": "^1.1.8",
-    "truffle": "^4.1.14",
     "web3-eth": "^1.0.0-beta.36",
     "web3-utils": "^1.0.0-beta.36"
   }
