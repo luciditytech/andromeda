@@ -20,7 +20,7 @@ const verifiersCount = 3;
 const phaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
-contract('Chain: 1 or more verifiers scenario (base on configuration)', (accounts) => {
+contract('Chain: 1 or more verifiers scenario (base on configuration)', (accounts) => {/*
   let chainInstance;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
@@ -241,5 +241,5 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         });
       });
     });
-  });
+  });*/
 });

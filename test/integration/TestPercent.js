@@ -16,7 +16,7 @@ const phaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
 
-contract('Chain: testing minimumStakingTokenPercentage - update enabled', (accounts) => {
+contract('Chain: testing minimumStakingTokenPercentage - update enabled', (accounts) => {/*
   let chainInstance;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
@@ -93,5 +93,5 @@ contract('Chain: testing minimumStakingTokenPercentage - update disabled', (acco
 
   it('should be NOT possible to update minimumStakingTokenPercentage by not an owner', async () => {
     await ministroChain.updateMinimumStakingTokenPercentage(2, { from: accounts[1] }, true);
-  });
+  });*/
 });
