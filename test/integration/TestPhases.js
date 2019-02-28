@@ -54,7 +54,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
         }
 
 
-        /* eslint-disable-next-line */
+        // eslint-disable-next-line
         await Promise.all(awaits);
         awaits = [];
 
@@ -68,7 +68,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
           writeProcessMsg('revealing... ');
         }
 
-        /* eslint-disable-next-line */
+        // eslint-disable-next-line
         await Promise.all(awaits);
         awaits = [];
 

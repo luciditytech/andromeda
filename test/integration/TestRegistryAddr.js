@@ -9,6 +9,7 @@ contract('Chain - testing registryAddress', (accounts) => {
   let chainInstance;
   const registryAddr = Web3Utils.randomHex(20);
   const newRegistryAddr = Web3Utils.randomHex(20);
+  const ZERO_ADDRESS = `0x${'0'.repeat(40)}`;
 
   before(async () => {
     assert.notEqual(registryAddr, newRegistryAddr);
@@ -18,7 +19,7 @@ contract('Chain - testing registryAddress', (accounts) => {
   });
 
   it('should have valid initial value', async () => {
-    assert.strictEqual(await ministroChain.registryAddress(), registryAddr);
+    assert.strictEqual((await ministroChain.registryAddress()).toLowerCase(), registryAddr);
   });
 
   it('should allow owner to change registry address', async () => {
@@ -30,6 +31,6 @@ contract('Chain - testing registryAddress', (accounts) => {
   });
 
   it('should NOT allow to change registry to empty address', async () => {
-    await ministroChain.updateRegistryAddress('0x0', {}, true);
+    await ministroChain.updateRegistryAddress(ZERO_ADDRESS, {}, true);
   });
 });

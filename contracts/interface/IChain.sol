@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 /// @title Interface for Chain contract
 /// @dev We do not use this interface in our `Chain.sol`. This is only for external usage.

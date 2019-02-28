@@ -5,6 +5,8 @@ const fs = require('fs');
 const VerifierRegistry = artifacts.require('VerifierRegistry');
 const HumanStandardToken = artifacts.require('token-sale-contracts/contracts/HumanStandardToken.sol');
 
+const { fromAscii } = require('web3-utils');
+
 const config = JSON.parse(fs.readFileSync('./config/development.json'));
 
 
@@ -65,12 +67,11 @@ async function registerVerifiers(regOwner, verifiersAddr) {
     throw new Error('[verifiers registration] approve fail');
   }
 
-
   try {
     const mapResults = [];
     verifiersAddr.map(async (addr, i) => {
       if (!amounts[addr]) return;
-      mapResults.push(registry.create(`192.168.1.${i + 1}`, { from: addr }));
+      mapResults.push(registry.create(`name.${i + 1}`, `192.168.1.${i + 1}`, { from: addr }));
     });
     await Promise.all(mapResults);
   } catch (e) {
@@ -82,14 +83,13 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   try {
     const mapResults = verifiersAddr.map(async (addr) => {
       if (!amounts[addr]) return;
-      await registry.receiveApproval(addr, 0, config.VerifierRegistry.tokenAddress, '');
+      await registry.receiveApproval(addr, 0, config.VerifierRegistry.tokenAddress, fromAscii(''));
     });
     await Promise.all(mapResults);
   } catch (e) {
     console.log(e);
     throw new Error('[verifiers registration] receiveApproval fail');
   }
-
 
   const mapResults = verifiersAddr.map(async (addr) => {
     let res = await registry.verifiers.call(addr);
@@ -98,7 +98,6 @@ async function registerVerifiers(regOwner, verifiersAddr) {
     assert.notEqual(parseInt(res.balance, 10), 0, 'verifier must have balance');
   });
   await Promise.all(mapResults);
-
 
   return registry.address;
 }
