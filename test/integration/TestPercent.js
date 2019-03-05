@@ -4,40 +4,32 @@ import { registerVerifiers } from '../helpers/RegisterVerifiers';
 
 import createProposals from '../samples/proposals';
 
-
-const Chain = artifacts.require('Chain');
-
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const ministroChain = ChainUtil();
+const {
+  deployContractRegistry,
+  deployChain,
+} = require('../helpers/deployers');
 
 const verifiersCount = 9;
 const phaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
-
 contract('Chain: testing minimumStakingTokenPercentage - update enabled', (accounts) => {
-  let chainInstance;
+  let ministroChain;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const { verifiersAddr } = proposalsObj;
 
-
   before(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
-
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
-      true,
+    const contractRegistry = await deployContractRegistry();
+    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
   });
 
   it('update should be enabled', async () => {
-    assert.isTrue(await chainInstance.updateMinimumStakingTokenPercentageEnabled.call());
+    assert.isTrue(await ministroChain.instance.updateMinimumStakingTokenPercentageEnabled.call());
   });
 
   it('minimumStakingTokenPercentage should have valid initial state', async () => {
@@ -57,27 +49,23 @@ contract('Chain: testing minimumStakingTokenPercentage - update enabled', (accou
 });
 
 contract('Chain: testing minimumStakingTokenPercentage - update disabled', (accounts) => {
-  let chainInstance;
+  let ministroChain;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const { verifiersAddr } = proposalsObj;
 
-
   before(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+    const contractRegistry = await deployContractRegistry();
+    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
 
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
-      false,
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, false,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
   });
 
   it('update should be disabled', async () => {
-    assert.isFalse(await chainInstance.updateMinimumStakingTokenPercentageEnabled.call());
+    assert.isFalse(await ministroChain.instance.updateMinimumStakingTokenPercentageEnabled.call());
   });
 
   it('minimumStakingTokenPercentage should have valid initial state', async () => {

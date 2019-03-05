@@ -3,14 +3,13 @@ import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const Chain = artifacts.require('Chain');
-
-const ministroChain = ChainUtil();
+const {
+  deployContractRegistry,
+  deployChain,
+} = require('../helpers/deployers');
 
 contract('Chain - test GAS', (accounts) => {
-  let chainInstance;
+  let ministroChain;
 
   const verifiersCount = 9;
   const phaseDuration = verifiersCount * 5;
@@ -21,19 +20,13 @@ contract('Chain - test GAS', (accounts) => {
     verifiersAddr, secrets, proposals, blindedProposals,
   } = proposalsObj;
 
-
   before(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
-
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
-      true,
+    const contractRegistry = await deployContractRegistry();
+    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
-    ministroChain.setFromVar(verifiersAddr[0]);
 
     await mineUntilReveal(phaseDuration);
   });
@@ -49,14 +42,14 @@ contract('Chain - test GAS', (accounts) => {
 
     const awaits = [];
     for (let i = 0; i < verifiersAddr.length; i += 1) {
-      awaits.push(chainInstance.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+      awaits.push(ministroChain.instance.propose(blindedProposals[i], { from: verifiersAddr[i] }));
     }
     await Promise.all(awaits);
 
     await mineUntilReveal(phaseDuration);
-    await chainInstance.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+    await ministroChain.instance.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
 
     await mineUntilPropose(phaseDuration);
-    await chainInstance.propose(blindedProposals[0], { from: verifiersAddr[0] });
+    await ministroChain.instance.propose(blindedProposals[0], { from: verifiersAddr[0] });
   });
 });

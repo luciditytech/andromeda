@@ -6,14 +6,13 @@ import { registerVerifiers } from '../helpers/RegisterVerifiers';
 
 import createProposals from '../samples/proposals';
 
-const Chain = artifacts.require('Chain');
-
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const ministroChain = ChainUtil();
+const {
+  deployContractRegistry,
+  deployChain,
+} = require('../helpers/deployers');
 
 contract('Chain - unusual cases', (accounts) => {
-  let chainInstance;
+  let ministroChain;
 
   const verifiersCount = 3;
 
@@ -27,19 +26,14 @@ contract('Chain - unusual cases', (accounts) => {
     verifiersAddr, secrets, proposals, blindedProposals,
   } = proposalsObj;
 
-
   before(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+    const contractRegistry = await deployContractRegistry();
+    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
 
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
-      true,
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
-    // ministroChain.setFromVar(verifiersAddr[0])
 
     const blindedProposalCheck = await ministroChain.createProof(proposals[0], secrets[0]);
     assert.strictEqual(blindedProposals[0], blindedProposalCheck, 'Hasher do not produce same output as blockchain keccak256');
