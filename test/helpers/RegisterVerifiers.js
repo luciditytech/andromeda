@@ -1,47 +1,49 @@
 import formatVerifier from '../helpers/Verifier';
 
-const fs = require('fs');
+const VerifierRegistryArtifact = artifacts.require('VerifierRegistry');
 
-const VerifierRegistry = artifacts.require('VerifierRegistry');
-const HumanStandardToken = artifacts.require('token-sale-contracts/contracts/HumanStandardToken.sol');
+const {
+  deployVerifierRegistry,
+  deployStakingBank,
+  deployHumanStandardToken,
+} = require('../helpers/deployers');
 
-const config = JSON.parse(fs.readFileSync('./config/development.json'));
-
-
-async function balancesPerShard(shard) {
-  const registry = await VerifierRegistry.deployed();
+async function balancesPerShard(registry, shard) {
   const res = await registry.balancesPerShard.call(shard.toString());
   return res.toString();
 }
 
-async function verifiersPerShard() {
-  const registry = await VerifierRegistry.deployed();
+async function verifiersPerShard(registry) {
   const res = await registry.verifiersPerShard.call();
   return res.toString();
 }
 
+function verifierCreated(verifier) {
+  let v = verifier;
+  if (typeof v.id === 'undefined') v = formatVerifier.format(v);
+  return v.id !== '0x0000000000000000000000000000000000000000';
+}
 
-async function verifierExists(addr) {
-  const registry = await VerifierRegistry.deployed();
+async function verifierExists(registry, addr) {
   let res = await registry.verifiers.call(addr);
   res = formatVerifier.format(res);
-  return res.created;
+  return verifierCreated(res);
 }
 
 // @return address of registry
-async function registerVerifiers(regOwner, verifiersAddr) {
-  const registry = await VerifierRegistry.deployed();
-  const humanStandardToken = await HumanStandardToken.deployed();
-
-  await registry.updateTokenAddress(humanStandardToken.address, { from: regOwner });
+async function registerVerifiers(owner, verifiersAddr, contractRegistryAddr, verifierRegistryAddr) {
+  const registry = verifierRegistryAddr ? (await VerifierRegistryArtifact.at(verifierRegistryAddr))
+    : (await deployVerifierRegistry(owner, contractRegistryAddr));
+  const token = await deployHumanStandardToken(owner, contractRegistryAddr);
+  const stakingBank = await deployStakingBank(owner, contractRegistryAddr, token.address);
 
   const amounts = {};
 
   try {
     const mapResults = verifiersAddr.map(async (addr, i) => {
-      if (await verifierExists(addr)) return;
+      if (await verifierExists(registry, addr)) return;
       amounts[addr] = i + 1;
-      await humanStandardToken.transfer(addr, amounts[addr], { from: regOwner });
+      await token.transfer(addr, amounts[addr], { from: owner });
     });
     await Promise.all(mapResults);
   } catch (e) {
@@ -50,22 +52,10 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   }
 
   try {
-    const mapResults = verifiersAddr.map(async (addr) => {
-      if (!amounts[addr]) return;
-      await humanStandardToken.approve(registry.address, amounts[addr], { from: addr });
-    });
-    await Promise.all(mapResults);
-  } catch (e) {
-    console.log(e);
-    throw new Error('[verifiers registration] approve fail');
-  }
-
-
-  try {
     const mapResults = [];
     verifiersAddr.map(async (addr, i) => {
       if (!amounts[addr]) return;
-      mapResults.push(registry.create(`192.168.1.${i + 1}`, { from: addr }));
+      mapResults.push(registry.create(`name.${i + 1}`, `192.168.1.${i + 1}`, { from: addr }));
     });
     await Promise.all(mapResults);
   } catch (e) {
@@ -77,29 +67,32 @@ async function registerVerifiers(regOwner, verifiersAddr) {
   try {
     const mapResults = verifiersAddr.map(async (addr) => {
       if (!amounts[addr]) return;
-      await registry.receiveApproval(addr, 0, config.VerifierRegistry.tokenAddress, '');
+      await token.approveAndCall(stakingBank.address, amounts[addr], '0x0', { from: addr });
     });
     await Promise.all(mapResults);
   } catch (e) {
     console.log(e);
-    throw new Error('[verifiers registration] receiveApproval fail');
+    throw new Error('[verifiers registration] approve fail');
   }
-
 
   const mapResults = verifiersAddr.map(async (addr) => {
     let res = await registry.verifiers.call(addr);
     res = formatVerifier.format(res);
-    assert.isTrue(res.created, 'verifier is not in registry');
+    assert.isTrue(verifierCreated(res), 'verifier is not in registry');
     assert.notEqual(parseInt(res.balance, 10), 0, 'verifier must have balance');
   });
-  await Promise.all(mapResults);
+  return Promise.all(mapResults);
+}
 
+async function updateActiveStatus(registry, regOwner, verifiersAddr, activeStatus) {
+  await registry.updateActiveStatus(verifiersAddr, activeStatus, { from: regOwner });
 
-  return registry.address;
+  return await verifierExists(registry, verifiersAddr) === activeStatus;
 }
 
 export {
   registerVerifiers,
   balancesPerShard,
   verifiersPerShard,
+  updateActiveStatus,
 };

@@ -1,6 +1,5 @@
 import web3Utils from 'web3-utils';
 import sha256 from 'js-sha256';
-import EthQuery from 'ethjs-query';
 
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 import { registerVerifiers } from '../helpers/RegisterVerifiers';
@@ -8,37 +7,31 @@ import { isRevealPhase, isProposePhase } from '../helpers/CycleFunctions';
 
 import createProposals from '../samples/proposals';
 
-const Chain = artifacts.require('Chain');
-
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const ministroChain = ChainUtil();
-
-const ethQuery = new EthQuery(web3.currentProvider);
+const {
+  deployContractRegistry,
+  deployChain,
+} = require('../helpers/deployers');
 
 const verifiersCount = 3;
 const phaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
 contract('Chain: 1 or more verifiers scenario (base on configuration)', (accounts) => {
-  let chainInstance;
+  let ministroChain;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const {
     verifiersAddr, secrets, proposals, blindedProposals,
   } = proposalsObj;
 
-
   beforeEach(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+    const contractRegistry = await deployContractRegistry();
 
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
+    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
 
     const blindedProposalCheck = await ministroChain.createProof(proposals[0], secrets[0]);
     assert.strictEqual(blindedProposals[0], blindedProposalCheck, 'Hasher do not produce same output as blockchain keccak256');
@@ -51,8 +44,8 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
     beforeEach(async () => {
       await mineUntilPropose(phaseDuration);
 
-      const block = await ethQuery.blockNumber();
-      assert.isTrue(isProposePhase(block.toNumber(), phaseDuration));
+      const blockNumber = await web3.eth.getBlockNumber();
+      assert.isTrue(isProposePhase(blockNumber, phaseDuration));
     });
 
     describe('passing tests', async () => {
@@ -135,8 +128,8 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         beforeEach(async () => {
           await mineUntilReveal(phaseDuration);
 
-          const block = await ethQuery.blockNumber();
-          assert.isTrue(isRevealPhase(block.toNumber(), phaseDuration));
+          const blockNumber = await web3.eth.getBlockNumber();
+          assert.isTrue(isRevealPhase(blockNumber, phaseDuration));
         });
 
         describe('passing tests', async () => {
@@ -164,7 +157,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
           it('should NOT be possible to reveal using wrong secret', async () => {
             const awaits = [];
             for (let i = 0; i < verifiersCount; i += 1) {
-              awaits.push(ministroChain.reveal(proposals[i], `${secrets[i]}_`, { from: verifiersAddr[i] }, true));
+              awaits.push(ministroChain.reveal(proposals[i], `0x${secrets[i].substring(2).split('').reverse().join('')}`, { from: verifiersAddr[i] }, true));
             }
             await Promise.all(awaits);
           });
@@ -223,8 +216,8 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
             beforeEach(async () => {
               await mineUntilPropose(phaseDuration);
 
-              const block = await ethQuery.blockNumber();
-              assert.isTrue(isProposePhase(block.toNumber(), phaseDuration));
+              const blockNumber = await web3.eth.getBlockNumber();
+              assert.isTrue(isProposePhase(blockNumber, phaseDuration));
             });
 
             it('should be able to propose using previous blinded proposal, because its new cycle', async () => {

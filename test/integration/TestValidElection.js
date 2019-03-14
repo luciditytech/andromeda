@@ -5,12 +5,11 @@ import { registerVerifiers, balancesPerShard } from '../helpers/RegisterVerifier
 
 import createProposals from '../samples/proposals';
 
-
-const Chain = artifacts.require('Chain');
-
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const ministroChain = ChainUtil();
+const {
+  deployContractRegistry,
+  deployChain,
+  deployVerifierRegistry,
+} = require('../helpers/deployers');
 
 const verifiersCount = 9;
 const phaseDuration = 5 * verifiersCount;
@@ -20,33 +19,28 @@ let logPropose;
 let balanceForShard;
 
 contract('Chain: testing validation of election', (accounts) => {
-  let chainInstance;
+  let ministroChain;
+  let verifierRegistry;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const {
     verifiersAddr, secrets, proposals, blindedProposals,
   } = proposalsObj;
 
-
   beforeEach(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+    const contractRegistry = await deployContractRegistry();
+    verifierRegistry = await deployVerifierRegistry(accounts[0], contractRegistry.address);
 
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
+    await registerVerifiers(
+      accounts[0], verifiersAddr,
+      contractRegistry.address, verifierRegistry.address,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
+    );
 
     await mineUntilReveal(phaseDuration);
-  });
-
-  it('minimumStakingTokenPercentage should have valid initial state', async () => {
-    assert.isTrue(
-      BigNumber(requirePercentOfTokens).eq(await ministroChain.minimumStakingTokenPercentage()),
-      'invalid initial value for minimumStakingTokenPercentage',
-    );
   });
 
   it('election should be invalid at begin', async () => {
@@ -54,7 +48,7 @@ contract('Chain: testing validation of election', (accounts) => {
   });
 
   it('should be able to get current total balance for shard', async () => {
-    balanceForShard = await balancesPerShard(0);
+    balanceForShard = await balancesPerShard(verifierRegistry, 0);
     let sum = 0;
     for (let i = 1; i <= verifiersCount; i += 1) {
       sum += i;
@@ -84,7 +78,7 @@ contract('Chain: testing validation of election', (accounts) => {
       });
 
       it('should return information if election was valid', async () => {
-        const tokensForShard = await balancesPerShard(logPropose.shard);
+        const tokensForShard = await balancesPerShard(verifierRegistry, logPropose.shard);
         let currentSumOfStakeTokens = 0;
 
 
@@ -92,7 +86,7 @@ contract('Chain: testing validation of election', (accounts) => {
           // first proposal is invalid/different, so we need to reset counter
           if (i === 1) currentSumOfStakeTokens = 0;
 
-          /* eslint-disable-next-line */
+          // eslint-disable-next-line
           const { LogUpdateCounters: [res] } = await ministroChain.reveal(
             proposals[i],
             secrets[i],
@@ -102,7 +96,7 @@ contract('Chain: testing validation of election', (accounts) => {
           assert.strictEqual(tokensForShard.toString(), res.totalTokenBalanceForShard.toString());
 
           currentSumOfStakeTokens += res.balance.toNumber();
-          /* eslint-disable-next-line */
+          // eslint-disable-next-line
           const onChainCurrentMax = await ministroChain.getBlockMaxVotes(res.blockHeight, res.shard);
 
           assert.strictEqual(
@@ -114,7 +108,7 @@ contract('Chain: testing validation of election', (accounts) => {
           const percentOfStake = Math.floor((currentSumOfStakeTokens * 100) / tokensForShard);
           const validElection = percentOfStake >= requirePercentOfTokens;
 
-          /* eslint-disable-next-line */
+          // eslint-disable-next-line
           const isElectionValid = await ministroChain.isElectionValid(
             res.blockHeight,
             res.shard,

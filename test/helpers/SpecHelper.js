@@ -1,8 +1,8 @@
 import BigNumber from 'bignumber.js';
-import EthQuery from 'ethjs-query';
 import { blocksToWaitForPropose, blocksToWaitForReveal } from './CycleFunctions';
 
-const ethQuery = new EthQuery(web3.currentProvider);
+web3.providers.HttpProvider.prototype.sendAsync = web3.providers.HttpProvider.prototype.send;
+const httpProvider = new web3.providers.HttpProvider(web3.currentProvider.host);
 
 const moveChar = () => {
   const rand = parseInt(Math.random() * 10, 10) % 4;
@@ -22,25 +22,10 @@ const writeProcessMsg = (msg, useMoveChar = true) => {
   process.stderr.write(`${s}${spaces}\r`);
 };
 
-const moveForward = seconds => (
-  new Promise((resolve, reject) => {
-    web3.currentProvider.sendAsync({
-      method: 'evm_increaseTime',
-      params: [seconds],
-    }, (err, res) => {
-      if (err !== undefined && err !== null) {
-        reject(err);
-      }
-
-      resolve(res);
-    });
-  })
-);
-
 const advanceBlock = () => (
   new Promise((resolve, reject) => {
     writeProcessMsg('mining blocks... ');
-    web3.currentProvider.sendAsync({
+    httpProvider.sendAsync({
       jsonrpc: '2.0',
       method: 'evm_mine',
       id: Date.now(),
@@ -49,14 +34,14 @@ const advanceBlock = () => (
 );
 
 const advanceToBlock = async (number) => {
-  const bn = await ethQuery.blockNumber();
-  if (bn > number) {
-    throw Error(`block number ${number} is in the past (current is ${bn})`);
+  const blockNumber = await web3.eth.getBlockNumber();
+  if (blockNumber > number) {
+    throw Error(`block number ${number} is in the past (current is ${blockNumber})`);
   }
 
   const awaits = [];
 
-  const blockCount = number - bn;
+  const blockCount = number - blockNumber;
 
   Array(blockCount)
     .fill()
@@ -65,40 +50,10 @@ const advanceToBlock = async (number) => {
   return Promise.all(awaits);
 };
 
-const takeSnapshot = () => (
-  new Promise((resolve, reject) => {
-    web3.currentProvider.sendAsync({
-      method: 'evm_snapshot',
-    }, (err, res) => {
-      if (err !== undefined && err !== null) {
-        reject(err);
-      }
-
-      const id = parseInt(res, 16);
-      resolve(id);
-    });
-  })
-);
-
-const resetSnapshot = id => (
-  new Promise((resolve, reject) => {
-    web3.currentProvider.sendAsync({
-      method: 'evm_revert',
-      params: [id],
-    }, (err, res) => {
-      if (err !== undefined && err !== null) {
-        reject(err);
-      }
-
-      resolve(res);
-    });
-  })
-);
-
 const mineUntilPropose = async (phaseDuration) => {
-  const blockNumber = await ethQuery.blockNumber();
+  const blockNumber = await web3.eth.getBlockNumber();
   const toMine =
-    blocksToWaitForPropose(blockNumber.toNumber(), phaseDuration);
+    blocksToWaitForPropose(blockNumber, phaseDuration);
 
   const prosalStartBlockNumber = new BigNumber(blockNumber).plus(toMine);
 
@@ -106,9 +61,9 @@ const mineUntilPropose = async (phaseDuration) => {
 };
 
 const mineUntilReveal = async (phaseDuration) => {
-  const blockNumber = await ethQuery.blockNumber();
+  const blockNumber = await web3.eth.getBlockNumber();
   const toMine =
-    blocksToWaitForReveal(blockNumber.toNumber(), phaseDuration);
+    blocksToWaitForReveal(blockNumber, phaseDuration);
 
   const revealStartBlockNumber = new BigNumber(blockNumber).plus(toMine);
   await advanceToBlock(revealStartBlockNumber.toNumber());
@@ -116,9 +71,6 @@ const mineUntilReveal = async (phaseDuration) => {
 
 export {
   writeProcessMsg,
-  moveForward,
-  takeSnapshot,
-  resetSnapshot,
   mineUntilReveal,
   mineUntilPropose,
 };

@@ -1,74 +1,43 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
-import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
-import "digivice/contracts/VerifierRegistry.sol";
-import "./ChainConfig.sol";
+import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
+import "digivice/contracts/interfaces/IVerifierRegistry.sol";
+
+import "contract-registry/contracts/interfaces/IContractRegistry.sol";
+import "contract-registry/contracts/interfaces/RegistrableWithSingleStorage.sol";
+
+import "./interface/IChain.sol";
+import "./ChainStorage.sol";
 
 /// @title Andromeda chain election contract
 /// @dev https://lucidity.slab.com/posts/andromeda-election-mechanism-e9a79c2a
-contract Chain is ChainConfig, ReentrancyGuard {
+contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable {
+  using SafeMath for uint256;
 
-  event LogPropose(address indexed sender, uint256 blockHeight, bytes32 blindedProposal, uint256 shard, uint256 balance);
+  bytes32  constant NAME = "Chain";
 
-  event LogReveal(address indexed sender, uint256 blockHeight, bytes32 proposal);
-
-  event LogUpdateCounters(
-    address indexed sender,
-    uint256 blockHeight,
-    uint256 shard,
-    bytes32 proposal,
-    uint256 counts,
-    uint256 balance,
-    bool newWinner,
-    uint256 totalTokenBalanceForShard
-  );
-
-
-  /// @dev this is our structure for holding getBlockVoter/proposals
-  ///      each vote will be deleted after reveal
-  struct Voter {
-    bytes32 blindedProposal;
-    uint256 shard;
-    bytes32 proposal;
-    uint256 balance;
+  modifier whenProposePhase() {
+    require(getCurrentElectionCycleBlock() < blocksPerPhase(), "we are not in propose phase");
+    _;
   }
-
-  /// @dev structure of block that is created for each election
-  struct Block {
-    /// @dev shard => root of merkle tree (the winner)
-    mapping (uint256 => bytes32) roots;
-    mapping (bytes32 => bool) uniqueBlindedProposals;
-    mapping (address => Voter) voters;
-
-    /// @dev shard => max votes
-    mapping (uint256 => uint256) maxsVotes;
-
-    // shard => proposal => counts
-    // Im using mapping, because its less gas consuming that array,
-    // and also it is much easier to work with mapping than with array
-    // unfortunately we can't be able to delete this data to release gas, why?
-    // because to do this, we need to save all the keys and then run loop for all keys... that may cause OOG
-    // also storing keys is more gas consuming so... I made decision to stay with mapping and never delete history
-    mapping (uint256 => mapping(bytes32 => uint256)) counts;
-
-    /// @dev shard => total amount of tokens
-    mapping (uint256 => uint256) balancesPerShard;
-
-    address[] verifierAddresses;
+  modifier whenRevealPhase() {
+    require(getCurrentElectionCycleBlock() >= blocksPerPhase(), "we are not in reveal phase");
+    _;
   }
-
-  /// @dev blockHeight => Block - results of each elections will be saved here: one block (array element) per election
-  mapping (uint256 => Block) blocks;
 
   constructor (
-    address _registryAddress,
-    uint8 _blocksPerPhase,
-    uint8 _minimumStakingTokenPercentage
+    IContractRegistry _contractRegistry,
+    ChainStorage _chainStorage
   )
-  ChainConfig(_registryAddress, _blocksPerPhase, _minimumStakingTokenPercentage)
+  RegistrableWithSingleStorage(address(_contractRegistry), IStorageBase(address(_chainStorage)))
   public {
+  }
 
+  function contractName() external view returns(bytes32) {
+    return NAME;
   }
 
   /// @dev Each operator / verifier submits an encrypted proposal, where each proposal
@@ -85,41 +54,35 @@ contract Chain is ChainConfig, ReentrancyGuard {
   // so `nonReentrant` can be additional safety feature here
   nonReentrant
   returns (bool) {
-
     uint256 blockHeight = getBlockHeight();
 
     require(_blindedProposal != bytes32(0), "_blindedProposal is empty");
-    require(!blocks[blockHeight].uniqueBlindedProposals[_blindedProposal], "blindedProposal not unique");
+    require(_storage().isUniqueBlindedProposal(blockHeight, _blindedProposal), "blindedProposal not unique");
 
-    bool created;
+    bool active;
     uint256 balance;
     uint256 shard;
-    (created, balance, shard) = _getVerifierInfo(msg.sender);
-    require(created, "verifier is not in the registry");
+    (active, balance, shard) = _getVerifierInfo(msg.sender);
+    require(active, "verifier is not in the registry or not active");
     require(balance > 0, "verifier has no right to propose");
 
+    ChainStorage.Voter memory voter;
+    (voter.blindedProposal, voter.shard, voter.proposal, voter.balance) = _storage().getBlockVoter(blockHeight, msg.sender);
 
-    Voter storage voter = blocks[blockHeight].voters[msg.sender];
     require(voter.blindedProposal == bytes32(0), "verifier already proposed in this round");
 
     // now we can save proposal
+    _storage().setUniqueBlindedProposal(blockHeight, _blindedProposal);
 
-    blocks[blockHeight].uniqueBlindedProposals[_blindedProposal] = true;
+    _storage().updateBlockVoter(blockHeight, msg.sender, _blindedProposal, shard, balance);
 
-    voter.blindedProposal = _blindedProposal;
-    voter.shard = shard;
-    voter.balance = balance;
+    if (_storage().getInitialBlockHeight(shard) == 0) {
+      _storage().setInitialBlockHeight(shard, blockHeight);
+    }
 
     emit LogPropose(msg.sender, blockHeight, _blindedProposal, shard, balance);
 
     return true;
-  }
-
-  function createProof(bytes32 _proposal, bytes32 _secret)
-  public
-  pure
-  returns (bytes32) {
-    return keccak256(abi.encodePacked(_proposal, _secret));
   }
 
   /// @param _proposal this is proposal in clear form
@@ -128,60 +91,38 @@ contract Chain is ChainConfig, ReentrancyGuard {
   external
   whenRevealPhase
   returns (bool) {
-
     uint256 blockHeight = getBlockHeight();
     bytes32 proof = createProof(_proposal, _secret);
 
-    Voter storage voter = blocks[blockHeight].voters[msg.sender];
+    ChainStorage.Voter memory voter;
+    (voter.blindedProposal, voter.shard, voter.proposal, voter.balance) = _storage().getBlockVoter(blockHeight, msg.sender);
+
     require(voter.blindedProposal == proof, "your proposal do not exists (are you verifier?) OR invalid proof");
     require(voter.proposal == bytes32(0), "you already revealed");
 
-    voter.proposal = _proposal;
-    _updateCounters(voter.shard, _proposal);
+    _storage().updateBlockVoterProposal(blockHeight, msg.sender, _proposal);
 
-    blocks[blockHeight].verifierAddresses.push(msg.sender);
+    _updateCounters(voter.shard, _proposal);
+    _storage().pushBlockVerifierAddress(blockHeight, msg.sender);
 
     emit LogReveal(msg.sender, blockHeight, _proposal);
 
     return true;
   }
 
-  /// @dev gets information about verifier from global registry
-  /// @return (bool created, uint256 shard)
-  function _getVerifierInfo(address _verifier)
-  internal
-  view
-  returns (bool created, uint256 balance, uint256 shard) {
-    VerifierRegistry registry = VerifierRegistry(registryAddress);
-
-    ( , , created, balance, shard) = registry.verifiers(_verifier);
+  function getBlockHeight() public view returns (uint256) {
+    return block.number.div(uint256(blocksPerPhase()) * 2);
   }
-
-  function _getTotalTokenBalancePerShard(uint256 _shard)
-  internal
-  view
-  returns (uint256) {
-    VerifierRegistry registry = VerifierRegistry(registryAddress);
-    return registry.balancesPerShard(_shard);
-  }
-
-  function getBlockHeight()
-  public
-  view
-  returns (uint256) {
-    return block.number.div(uint256(blocksPerPhase) * 2);
-  }
-
 
   /// @dev this function needs to be called each time we successfully reveal a proposal
   function _updateCounters(uint256 _shard, bytes32 _proposal)
   internal {
     uint256 blockHeight = getBlockHeight();
 
-    uint256 balance = blocks[blockHeight].voters[msg.sender].balance;
+    uint256 balance = _storage().getBlockVoterBalance(blockHeight, msg.sender);
 
-    blocks[blockHeight].counts[_shard][_proposal] += balance;
-    uint256 shardProposalsCount = blocks[blockHeight].counts[_shard][_proposal];
+    _storage().incBlockCount(blockHeight, _shard, _proposal, balance);
+    uint256 shardProposalsCount = _storage().getBlockCount(blockHeight, _shard, _proposal);
     bool newWinner;
 
     // unless it is not important for some reason, lets use `>` not `>=` in condition below
@@ -189,66 +130,130 @@ contract Chain is ChainConfig, ReentrancyGuard {
     //  1. we save a lot of gas: we do not change state each time we have equal result
     //  2. we encourage voters to vote asap, because in case of equal results,
     //     winner is the first one that was revealed
-    if (shardProposalsCount > blocks[blockHeight].maxsVotes[_shard]) {
+    if (shardProposalsCount > _storage().getBlockMaxVotes(blockHeight, _shard)) {
 
       // we do expect that all (or most of) voters will agree about proposal.
       // We can save gas, if we read `roots[shard]` value and check, if we need a change.
-      if (blocks[blockHeight].roots[_shard] != _proposal) {
-        blocks[blockHeight].roots[_shard] = _proposal;
+      if (_storage().getBlockRoot(blockHeight, _shard) != _proposal) {
+        _storage().setBlockRoot(blockHeight, _shard, _proposal);
         newWinner = true;
       }
 
-      blocks[blockHeight].maxsVotes[_shard] = shardProposalsCount;
+      _storage().setBlockMaxVotes(blockHeight, _shard, shardProposalsCount);
     }
 
     uint256 tokensBalance = _getTotalTokenBalancePerShard(_shard);
-    if (blocks[blockHeight].balancesPerShard[_shard] != tokensBalance) {
-      blocks[blockHeight].balancesPerShard[_shard] = tokensBalance;
+
+    if (_storage().getBlockBalance(blockHeight, _shard) != tokensBalance) {
+      _storage().setBlockBalance(blockHeight, _shard, tokensBalance);
     }
 
     emit LogUpdateCounters(msg.sender, blockHeight, _shard, _proposal, shardProposalsCount, balance, newWinner, tokensBalance);
   }
 
+  function _getVerifierInfo(address _verifier) internal view returns (bool active, uint256 balance, uint256 shard) {
+    IVerifierRegistry registry = IVerifierRegistry(contractRegistry.contractByName("VerifierRegistry"));
 
+    ( , , , active, balance, shard) = registry.verifiers(_verifier);
+  }
+
+  function _getTotalTokenBalancePerShard(uint256 _shard) internal view returns (uint256) {
+    IVerifierRegistry registry = IVerifierRegistry(contractRegistry.contractByName("VerifierRegistry"));
+    return registry.balancesPerShard(_shard);
+  }
+
+  function createProof(bytes32 _proposal, bytes32 _secret) public pure returns (bytes32) {
+    return keccak256(abi.encodePacked(_proposal, _secret));
+  }
 
   function getBlockRoot(uint256 _blockHeight, uint256 _shard) external view returns (bytes32) {
-    return blocks[_blockHeight].roots[_shard];
+    return _storage().getBlockRoot(_blockHeight, _shard);
   }
 
   function getBlockVoter(uint256 _blockHeight, address _voter)
   external
   view
-  returns (bytes32, uint256, bytes32, uint256) {
-    Voter storage voter = blocks[_blockHeight].voters[_voter];
-    return (voter.blindedProposal, voter.shard, voter.proposal, voter.balance);
+  returns (bytes32 blindedProposal, uint256 shard, bytes32 proposal, uint256 balance) {
+    (blindedProposal, shard, proposal, balance) = _storage().getBlockVoter(_blockHeight, _voter);
   }
 
   function getBlockMaxVotes(uint256 _blockHeight, uint256 _shard) external view returns (uint256) {
-    return blocks[_blockHeight].maxsVotes[_shard];
+    return _storage().getBlockMaxVotes(_blockHeight, _shard);
   }
 
   function getBlockCount(uint256 _blockHeight, uint256 _shard, bytes32 _proposal) external view returns (uint256) {
-    return blocks[_blockHeight].counts[_shard][_proposal];
+    return _storage().getBlockCount(_blockHeight, _shard, _proposal);
   }
 
   function getBlockAddress(uint256 _blockHeight, uint256 _i) external view returns (address) {
-    return blocks[_blockHeight].verifierAddresses[_i];
+    return _storage().getBlockVerifierAddress(_blockHeight, _i);
   }
 
   function getBlockAddressCount(uint256 _blockHeight) external view returns (uint256) {
-    return blocks[_blockHeight].verifierAddresses.length;
+    return _storage().getBlockVerifierAddressesCount(_blockHeight);
   }
 
   function getStakeTokenBalanceFor(uint256 _blockHeight, uint256 _shard) external view returns (uint256) {
-    return blocks[_blockHeight].balancesPerShard[_shard];
+    return _storage().getBlockBalance(_blockHeight, _shard);
   }
 
   function isElectionValid(uint256 _blockHeight, uint256 _shard) external view returns (bool) {
-    Block storage electionBlock = blocks[_blockHeight];
-    if (electionBlock.balancesPerShard[_shard] == 0) return false;
-    return electionBlock.maxsVotes[_shard] * 100 / electionBlock.balancesPerShard[_shard] >= minimumStakingTokenPercentage;
+    uint256 balance = _storage().getBlockBalance(_blockHeight, _shard);
+    if (balance == 0) return false;
+    return _storage().getBlockMaxVotes(_blockHeight, _shard) * 100 / balance >= minimumStakingTokenPercentage();
   }
 
+  function _storage() private view returns (ChainStorage) {
+    return ChainStorage(address(singleStorage));
+  }
 
+  function updateMinimumStakingTokenPercentage(uint8 _minimumStakingTokenPercentage)
+  public
+  onlyOwner
+  returns (bool) {
+    return _storage().updateMinimumStakingTokenPercentage(_minimumStakingTokenPercentage);
+  }
 
+  function updateMinimumStakingTokenPercentageEnabled()
+  public
+  view
+  returns (bool) {
+    return _storage().updateMinimumStakingTokenPercentageEnabled();
+  }
+
+  function minimumStakingTokenPercentage()
+  public
+  view
+  returns (uint8) {
+    return _storage().minimumStakingTokenPercentage();
+  }
+
+  function blocksPerPhase()
+  public
+  view
+  returns (uint8) {
+    return _storage().blocksPerPhase();
+  }
+
+  function getCurrentElectionCycleBlock()
+  public
+  view
+  returns (uint256) {
+    return block.number % (uint256(blocksPerPhase()) * 2);
+  }
+
+  /// @return first block number (blockchain block) of current cycle
+  function getFirstCycleBlock()
+  public
+  view
+  returns (uint256) {
+    return block.number.sub(getCurrentElectionCycleBlock());
+  }
+
+  function isProposePhase()
+  public
+  view
+  returns (bool) {
+    return getCurrentElectionCycleBlock() < blocksPerPhase();
+  }
 }

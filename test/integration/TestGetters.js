@@ -2,18 +2,17 @@ import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
-const Chain = artifacts.require('Chain');
-
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const ministroChain = ChainUtil();
+const {
+  deployContractRegistry,
+  deployChain,
+} = require('../helpers/deployers');
 
 contract('Chain - testing getters', (accounts) => {
   const phaseDuration = 5;
   const verifiersCount = 1;
   const requirePercentOfTokens = 70;
 
-  let chainInstance;
+  let ministroChain;
 
   const {
     verifiersAddr,
@@ -23,15 +22,13 @@ contract('Chain - testing getters', (accounts) => {
   } = createProposals(verifiersCount, accounts);
 
   before(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+    const contractRegistry = await deployContractRegistry();
+    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
 
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
   });
 
   describe('when verifier propose and reveal', async () => {

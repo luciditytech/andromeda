@@ -3,6 +3,8 @@ import web3Utils from 'web3-utils';
 import ministroExecute from 'ministro-tool';
 import BigNumber from 'bignumber.js';
 
+const ChainStorage = artifacts.require('ChainStorage');
+
 const { assert } = chai;
 
 function ProxyContract() {
@@ -99,22 +101,74 @@ function ProxyContract() {
     return results;
   };
 
-  app.updateRegistryAddress = async (registryAddress, txAttr, expectThrow) => {
+  async function trackEvent(contract, eventName, call) {
+    return new Promise((resolve, reject) => {
+      let eventResult;
+      let callResult;
+      let callExecuted = false;
+      let timeout;
+
+      function process() {
+        if (!callExecuted) {
+          // we must wait for the call
+          return;
+        }
+
+        if (!eventResult) {
+          // wait a bit
+          timeout = setTimeout(() => {
+            timeout = null;
+            process();
+          }, 10000);
+        }
+
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+
+        resolve({
+          event: eventResult,
+          result: callResult,
+        });
+      }
+
+      contract.once(eventName, {
+        filter: {},
+      }, (err, event) => {
+        if (err) {
+          reject(err);
+        } else {
+          eventResult = event;
+          process();
+        }
+      });
+
+      call.then((result) => {
+        callResult = result;
+        callExecuted = true;
+        process();
+      }).catch((err) => {
+        reject(err);
+      });
+    });
+  }
+
+  app.updateMinimumStakingTokenPercentage = async (percent, txAttr, expectThrow) => {
     const txAttrLocal = app.getTxAttr(txAttr);
 
-    const action = () => app.instance.updateRegistryAddress(registryAddress, txAttrLocal);
+    const action = () => app.instance.updateMinimumStakingTokenPercentage(percent, txAttrLocal);
 
-    const results = await app.executeAction(action, txAttrLocal, 1, 'LogUpdateRegistryAddress', expectThrow);
+    const storage = await ChainStorage.at((await app.instance.singleStorage.call()));
+
+    const { result, event } = await trackEvent(storage.contract, 'LogChainConfig', app.executeAction(action, txAttrLocal, null, null, expectThrow));
 
     if (!expectThrow) {
-      const logUpdateRegistryAddress = results.LogUpdateRegistryAddress[0];
-      assert.strictEqual(logUpdateRegistryAddress.newRegistryAddress, registryAddress, 'invalid newRegistryAddress');
-
-      const registry = await app.registryAddress();
-      assert.strictEqual(registry, registryAddress, 'registryAddress is not saved on blockchain');
+      assert.strictEqual(event.returnValues.requirePercentOfTokens.toString(), percent.toString(), 'invalid minimumStakingTokenPercentage');
+      const minimumStakingTokenPercentage = await app.minimumStakingTokenPercentage();
+      assert.strictEqual(minimumStakingTokenPercentage.toString(), percent.toString(), 'minimumStakingTokenPercentage is not saved on blockchain');
     }
 
-    return results;
+    return result;
   };
 
   app.getBlockVoter = async (blockHeight, address) => {
@@ -130,9 +184,8 @@ function ProxyContract() {
   };
 
   app.getBlockHeight = async () => app.instance.getBlockHeight.call();
-  app.getCycleBlock = async () => app.instance.getCycleBlock.call();
   app.getFirstCycleBlock = async () => app.instance.getFirstCycleBlock.call();
-  app.registryAddress = async () => app.instance.registryAddress.call();
+  app.contractRegistry = async () => app.instance.contractRegistry.call();
 
   app.getBlockAddressCount =
     async blockHeight => app.instance.getBlockAddressCount.call(blockHeight);
