@@ -97,9 +97,4 @@ contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
   function token() external view returns (IERC20) {
     return _storage().token();
   }
-
-  function setToken(address _token)
-  external {
-    _storage().setToken(_token);
-  }
 }

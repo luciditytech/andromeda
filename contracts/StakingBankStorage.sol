@@ -21,10 +21,4 @@ contract StakingBankStorage is StorageBase {
   onlyFromStorageOwner {
     stakingBalances[_verifier] = _balance;
   }
-
-  function setToken(address _token)
-  external
-  onlyFromStorageOwner {
-    token = IERC20(_token);
-  }
 }
