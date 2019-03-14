@@ -2,18 +2,17 @@ import { mineUntilPropose, mineUntilReveal, writeProcessMsg } from '../helpers/S
 import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
-const Chain = artifacts.require('Chain');
-
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const ministroChain = ChainUtil();
+const {
+  deployContractRegistry,
+  deployChain,
+} = require('../helpers/deployers');
 
 contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
   const phaseDuration = accounts.length - 1;
   const verifiersCount = phaseDuration;
   const requirePercentOfTokens = 70;
 
-  let chainInstance;
+  let ministroChain;
 
   const {
     verifiersAddr,
@@ -23,16 +22,13 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
   } = createProposals(verifiersCount, accounts);
 
   before(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+    const contractRegistry = await deployContractRegistry();
+    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
 
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
-      true,
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
   });
 
   describe('when we start at the begin of propose phase', async () => {

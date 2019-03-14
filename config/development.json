@@ -7,10 +7,13 @@
     "price": 49000
   },
   "VerifierRegistry": {
-    "tokenAddress": "0x1588d300a9995934aa9daae19be285a66eb46c1c"
+    "verifiersPerShard": "10"
   },
   "Chain": {
     "blocksPerPhase": "10",
     "minimumStakingTokenPercentage": "70"
+  },
+  "ContractRegistry": {
+    "address": "0x0000000000000000000000000000000000000001"
   }
 }

@@ -13,5 +13,8 @@
     "verifierRegistryAddress": "0x614cb086657c47739068c12eeff43a4018be1190",
     "blocksPerPhase": "10",
     "minimumStakingTokenPercentage": "70"
+  },
+  "ContractRegistry": {
+    "address": ""
   }
 }

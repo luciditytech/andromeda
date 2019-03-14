@@ -3,36 +3,37 @@ import { registerVerifiers, updateActiveStatus } from '../helpers/RegisterVerifi
 
 import createProposals from '../samples/proposals';
 
-const Chain = artifacts.require('Chain');
-
-const ChainUtil = require('../ministro-contracts/ministroChain');
-
-const ministroChain = ChainUtil();
+const {
+  deployContractRegistry,
+  deployChain,
+  deployVerifierRegistry,
+} = require('../helpers/deployers');
 
 const verifiersCount = 3;
 const phaseDuration = 5 * verifiersCount * 2;
 const requirePercentOfTokens = 70;
 
 contract('Chain: testing active/non active verifiers', (accounts) => {
-  let chainInstance;
+  let ministroChain;
+  let verifierRegistry;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const {
     verifiersAddr, proposals, secrets, blindedProposals,
   } = proposalsObj;
 
-
   before(async () => {
-    const registryAddr = await registerVerifiers(accounts[0], verifiersAddr);
+    const contractRegistry = await deployContractRegistry();
+    verifierRegistry = await deployVerifierRegistry(accounts[0], contractRegistry.address);
 
-    chainInstance = await Chain.new(
-      registryAddr,
-      phaseDuration,
-      requirePercentOfTokens,
-      true,
+    await registerVerifiers(
+      accounts[0], verifiersAddr,
+      contractRegistry.address, verifierRegistry.address,
     );
-
-    ministroChain.setInstanceVar(chainInstance);
+    ministroChain = await deployChain(
+      accounts[0], contractRegistry.address, phaseDuration,
+      requirePercentOfTokens, true,
+    );
   });
 
 
@@ -40,7 +41,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
     before(async () => {
       const awaits = [];
       verifiersAddr.map((verifier) => {
-        awaits.push(updateActiveStatus(accounts[0], verifier, false));
+        awaits.push(updateActiveStatus(verifierRegistry, accounts[0], verifier, false));
         return true;
       });
       await Promise.all(awaits);
@@ -65,7 +66,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
         before(async () => {
           const awaits = [];
           verifiersAddr.map((verifier) => {
-            awaits.push(updateActiveStatus(accounts[0], verifier, true));
+            awaits.push(updateActiveStatus(verifierRegistry, accounts[0], verifier, true));
             return true;
           });
           await Promise.all(awaits);
@@ -89,7 +90,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
             before(async () => {
               const awaits = [];
               verifiersAddr.map((verifier) => {
-                awaits.push(updateActiveStatus(accounts[0], verifier, false));
+                awaits.push(updateActiveStatus(verifierRegistry, accounts[0], verifier, false));
                 return true;
               });
               await Promise.all(awaits);
