@@ -1,0 +1,12 @@
+{
+  "StakingBank": {
+    "name": "0x5374616b696e6742616e6b000000000000000000000000000000000000000000",
+    "address": ""
+  },
+  "HumanStandardToken": {
+    "address": "0x8a354678c11f2c9fd6886558354e240d5b7f2210"
+  },
+  "ContractRegistry": {
+    "address": "0xAde59F45F9835BF601806c43C061D1868907700d"
+  }
+}
