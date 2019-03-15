@@ -154,7 +154,7 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   function _getVerifierInfo(address _verifier) internal view returns (bool active, uint256 balance, uint256 shard) {
     IVerifierRegistry registry = IVerifierRegistry(contractRegistry.contractByName("VerifierRegistry"));
 
-    ( , , , active, balance, shard) = registry.verifiers(_verifier);
+    ( , , , active, balance, shard,) = registry.verifiers(_verifier);
   }
 
   function _getTotalTokenBalancePerShard(uint256 _shard) internal view returns (uint256) {
