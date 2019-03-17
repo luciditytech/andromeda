@@ -1,9 +1,7 @@
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
@@ -22,11 +20,8 @@ contract('Chain - testing getters', (accounts) => {
   } = createProposals(verifiersCount, accounts);
 
   before(async () => {
-    const contractRegistry = await deployContractRegistry();
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
-
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
   });
@@ -44,11 +39,9 @@ contract('Chain - testing getters', (accounts) => {
       await mineUntilReveal(phaseDuration);
       await mineUntilPropose(phaseDuration);
 
-
       await ministroChain.propose(blindedProposals[0], { from: verifiersAddr[0] });
       await mineUntilReveal(phaseDuration);
       results = await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
-
 
       ({ sender, blockHeight, proposal } = results.LogReveal[0]);
       ({ shard, balance } = results.LogUpdateCounters[0]);

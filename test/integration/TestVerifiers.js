@@ -2,13 +2,11 @@ import web3Utils from 'web3-utils';
 import sha256 from 'js-sha256';
 
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import { isRevealPhase, isProposePhase } from '../helpers/CycleFunctions';
 
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
@@ -25,11 +23,8 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
   } = proposalsObj;
 
   beforeEach(async () => {
-    const contractRegistry = await deployContractRegistry();
-
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
 

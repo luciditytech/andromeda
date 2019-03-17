@@ -1,9 +1,7 @@
 import { mineUntilPropose, mineUntilReveal, writeProcessMsg } from '../helpers/SpecHelper';
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
@@ -22,11 +20,8 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
   } = createProposals(verifiersCount, accounts);
 
   before(async () => {
-    const contractRegistry = await deployContractRegistry();
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
-
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
   });

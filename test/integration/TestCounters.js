@@ -2,12 +2,10 @@ import web3Utils from 'web3-utils';
 import BigNumber from 'bignumber.js';
 
 import { mineUntilReveal, mineUntilPropose } from '../helpers/SpecHelper';
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import { isProposePhase, isRevealPhase } from '../helpers/CycleFunctions';
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
@@ -30,11 +28,8 @@ contract('Chain - testing counters', (accounts) => {
   before(async () => {
     counter = new BigNumber(0);
 
-    const contractRegistry = await deployContractRegistry();
-
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
 

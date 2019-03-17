@@ -1,14 +1,17 @@
 import BigNumber from 'bignumber.js';
 
+import { fromAscii } from 'web3-utils';
+
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
-import { registerVerifiers, balancesPerShard } from '../helpers/RegisterVerifiers';
+import { balancesPerShard } from '../helpers/Verifier';
 
 import createProposals from '../samples/proposals';
 
+const ContractRegistryArtifact = artifacts.require('ContractRegistry');
+const VerifierRegistryArtifact = artifacts.require('VerifierRegistry');
+
 const {
-  deployContractRegistry,
   deployChain,
-  deployVerifierRegistry,
 } = require('../helpers/deployers');
 
 const verifiersCount = 9;
@@ -28,17 +31,14 @@ contract('Chain: testing validation of election', (accounts) => {
   } = proposalsObj;
 
   beforeEach(async () => {
-    const contractRegistry = await deployContractRegistry();
-    verifierRegistry = await deployVerifierRegistry(accounts[0], contractRegistry.address);
-
-    await registerVerifiers(
-      accounts[0], verifiersAddr,
-      contractRegistry.address, verifierRegistry.address,
-    );
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
+
+    const contractRegistry = await ContractRegistryArtifact
+      .at(await ministroChain.instance.contractRegistry.call());
+    verifierRegistry = await VerifierRegistryArtifact.at(await contractRegistry.contractByName.call(fromAscii('VerifierRegistry')));
 
     await mineUntilReveal(phaseDuration);
   });
