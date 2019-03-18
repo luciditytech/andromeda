@@ -60,10 +60,11 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     require(_storage().isUniqueBlindedProposal(blockHeight, _blindedProposal), "blindedProposal not unique");
 
     bool active;
+    bool enabled;
     uint256 balance;
     uint256 shard;
-    (active, balance, shard) = _getVerifierInfo(msg.sender);
-    require(active, "verifier is not in the registry or not active");
+    (active, enabled, balance, shard) = _getVerifierInfo(msg.sender);
+    require(active && enabled, "verifier is not in the registry or not active");
     require(balance > 0, "verifier has no right to propose");
 
     ChainStorage.Voter memory voter;
@@ -151,10 +152,9 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     emit LogUpdateCounters(msg.sender, blockHeight, _shard, _proposal, shardProposalsCount, balance, newWinner, tokensBalance);
   }
 
-  function _getVerifierInfo(address _verifier) internal view returns (bool active, uint256 balance, uint256 shard) {
+  function _getVerifierInfo(address _verifier) internal view returns (bool active, bool enabled, uint256 balance, uint256 shard) {
     IVerifierRegistry registry = IVerifierRegistry(contractRegistry.contractByName("VerifierRegistry"));
-
-    ( , , , active, balance, shard) = registry.verifiers(_verifier);
+    ( , , , active, balance, shard, enabled) = registry.verifiers(_verifier);
   }
 
   function _getTotalTokenBalancePerShard(uint256 _shard) internal view returns (uint256) {

@@ -1,7 +1,7 @@
 import { fromAscii } from 'web3-utils';
 
 import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
-import { updateActiveStatus } from '../helpers/Verifier';
+import { updateEnableStatus } from '../helpers/Verifier';
 
 import createProposals from '../samples/proposals';
 
@@ -16,7 +16,7 @@ const verifiersCount = 3;
 const phaseDuration = 5 * verifiersCount * 2;
 const requirePercentOfTokens = 70;
 
-contract('Chain: testing active/non active verifiers', (accounts) => {
+contract('Chain: testing enabled/disabled verifiers', (accounts) => {
   let ministroChain;
   let verifierRegistry;
 
@@ -37,11 +37,11 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
   });
 
 
-  describe('when all verifiers are inactive', async () => {
+  describe('when all verifiers are disabled', async () => {
     before(async () => {
       const awaits = [];
       verifiersAddr.map((verifier) => {
-        awaits.push(updateActiveStatus(verifierRegistry, accounts[0], verifier, false));
+        awaits.push(updateEnableStatus(verifierRegistry, accounts[0], verifier, false));
         return true;
       });
       await Promise.all(awaits);
@@ -66,7 +66,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
         before(async () => {
           const awaits = [];
           verifiersAddr.map((verifier) => {
-            awaits.push(updateActiveStatus(verifierRegistry, accounts[0], verifier, true));
+            awaits.push(updateEnableStatus(verifierRegistry, accounts[0], verifier, true));
             return true;
           });
           await Promise.all(awaits);
@@ -86,11 +86,11 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
             await Promise.all(awaits);
           });
 
-          describe('when verifiers become inactive', async () => {
+          describe('when verifiers become disabled', async () => {
             before(async () => {
               const awaits = [];
               verifiersAddr.map((verifier) => {
-                awaits.push(updateActiveStatus(verifierRegistry, accounts[0], verifier, false));
+                awaits.push(updateEnableStatus(verifierRegistry, accounts[0], verifier, false));
                 return true;
               });
               await Promise.all(awaits);

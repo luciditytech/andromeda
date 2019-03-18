@@ -59,7 +59,7 @@
     "lodash": "4.17.11",
     "pify": "4.0.0",
     "solidity-coverage": "0.5.11",
-    "solium": "1.1.8",
+    "solium": "1.2.3",
     "web3-eth": "1.0.0-beta.36",
     "web3-utils": "1.0.0-beta.36"
   }
