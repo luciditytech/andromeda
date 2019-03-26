@@ -256,4 +256,12 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   returns (bool) {
     return getCurrentElectionCycleBlock() < blocksPerPhase();
   }
+
+  function initialBlockHeights(uint256 _shard)
+  public
+  view
+  returns (uint256) {
+    return _storage().initialBlockHeights(_shard);
+  }
+
 }

@@ -12,7 +12,10 @@
     "console": "truffle console",
     "lint:solium": "solium --dir .",
     "lint:js": "eslint ./test/**/*.js --fix",
-    "lint": "npm run lint:js && npm run lint:solium"
+    "lint": "npm run lint:js && npm run lint:solium",
+    "src:storage": "./node_modules/.bin/truffle-flattener ./contracts/ChainStorage.sol > all_storage.sol",
+    "src:contract": "./node_modules/.bin/truffle-flattener ./contracts/Chain.sol > all.sol",
+    "src": "npm run src:storage && npm run src:contract"
   },
   "repository": {
     "type": "git",
