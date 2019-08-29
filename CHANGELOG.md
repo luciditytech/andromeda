@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - option to update `minimumStakingTokenPercentage`.
 - `initialBlockHeights` to set the initial block-height per shard
 - fetch VerifierRegistry contract from ContractRegistry
+- Proposals are made for specyfic `block-height`
 
 ### Changed
 - smart contracts are complient with solidity 0.5

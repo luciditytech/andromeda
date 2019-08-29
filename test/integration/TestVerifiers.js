@@ -1,7 +1,7 @@
 import web3Utils from 'web3-utils';
 import sha256 from 'js-sha256';
 
-import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
+import { getBlockHeight, mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 import { isRevealPhase, isProposePhase } from '../helpers/CycleFunctions';
 
 import createProposals from '../samples/proposals';
@@ -46,8 +46,13 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
     describe('passing tests', async () => {
       it('should be possible to propose', async () => {
         const awaits = [];
+        const blockHeight = await getBlockHeight(phaseDuration);
         for (let i = 0; i < verifiersCount; i += 1) {
-          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+          awaits.push(ministroChain.propose(
+            blindedProposals[i],
+            blockHeight,
+            { from: verifiersAddr[i] },
+          ));
         }
 
         await Promise.all(awaits);
@@ -57,18 +62,25 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
     describe('failing tests', async () => {
       describe('when all made valid proposal already', async () => {
         beforeEach(async () => {
+          const blockHeight = await getBlockHeight(phaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
-            awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+            awaits.push(ministroChain.propose(
+              blindedProposals[i],
+              blockHeight,
+              { from: verifiersAddr[i] },
+            ));
           }
           await Promise.all(awaits);
         });
 
         it('should NOT be possible to propose same proposal again', async () => {
+          const blockHeight = await getBlockHeight(phaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             awaits.push(ministroChain.propose(
               blindedProposals[i],
+              blockHeight,
               { from: verifiersAddr[i] },
               true,
             ));
@@ -77,22 +89,34 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         });
 
         it('should NOT be possible to propose same proposal using different secrets by the same verifier', async () => {
+          const blockHeight = await getBlockHeight(phaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             const differentSecret = web3Utils.soliditySha3(secrets[i]);
             const blindedProposal2 = web3Utils.soliditySha3(proposals[i], differentSecret);
-            awaits.push(ministroChain.propose(blindedProposal2, { from: verifiersAddr[i] }, true));
+            awaits.push(ministroChain.propose(
+              blindedProposal2,
+              blockHeight,
+              { from: verifiersAddr[i] },
+              true,
+            ));
           }
           await Promise.all(awaits);
         });
 
         it('should NOT be possible to propose different proposal by same verifier', async () => {
+          const blockHeight = await getBlockHeight(phaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             // lets prepare another proposal
             const proposal2 = web3Utils.soliditySha3(sha256.hex(`${proposals[i]}_`));
             const blindedProposal2 = web3Utils.soliditySha3(proposal2, secrets[i]);
-            awaits.push(ministroChain.propose(blindedProposal2, {}, true));
+            awaits.push(ministroChain.propose(
+              blindedProposal2,
+              blockHeight,
+              {},
+              true,
+            ));
           }
           await Promise.all(awaits);
         });
@@ -110,9 +134,14 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
 
     describe('when all proposed', async () => {
       beforeEach(async () => {
+        const blockHeight = await getBlockHeight(phaseDuration);
         const awaits = [];
         for (let i = 0; i < verifiersCount; i += 1) {
-          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+          awaits.push(ministroChain.propose(
+            blindedProposals[i],
+            blockHeight,
+            { from: verifiersAddr[i] },
+          ));
         }
         await Promise.all(awaits);
       });
@@ -179,12 +208,14 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
             });
 
             it('should NOT be possible to propose', async () => {
+              const blockHeight = await getBlockHeight(phaseDuration);
               const awaits = [];
               for (let i = 0; i < verifiersCount; i += 1) {
                 // try propose
                 awaits
                   .push(ministroChain.propose(
                     blindedProposals[i],
+                    blockHeight,
                     { from: verifiersAddr[i] },
                     true,
                   ));
@@ -216,11 +247,16 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
             });
 
             it('should be able to propose using previous blinded proposal, because its new cycle', async () => {
+              const blockHeight = await getBlockHeight(phaseDuration);
               const awaits = [];
               // depends on requirements, we can move this test to failing
               // and change contract to not accept this behaviour
               for (let i = 0; i < verifiersCount; i += 1) {
-                awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+                awaits.push(ministroChain.propose(
+                  blindedProposals[i],
+                  blockHeight,
+                  { from: verifiersAddr[i] },
+                ));
               }
               await Promise.all(awaits);
             });

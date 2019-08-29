@@ -22,9 +22,9 @@ function ProxyContract() {
     return app.instance.createProof.call(proposal, secret);
   };
 
-  app.propose = async (blindedProposal, txAttr, expectThrow) => {
+  app.propose = async (blindedProposal, blockHeight, txAttr, expectThrow) => {
     const txAttrLocal = app.getTxAttr(txAttr);
-    const action = () => app.instance.propose(blindedProposal, txAttrLocal);
+    const action = () => app.instance.propose(blindedProposal, blockHeight, txAttrLocal);
 
     const results = await app.executeAction(action, txAttrLocal, null, 'LogPropose', expectThrow);
 

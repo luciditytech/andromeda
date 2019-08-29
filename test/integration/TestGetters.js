@@ -1,4 +1,4 @@
-import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
+import { getBlockHeight, mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 import createProposals from '../samples/proposals';
 
 const {
@@ -39,7 +39,13 @@ contract('Chain - testing getters', (accounts) => {
       await mineUntilReveal(phaseDuration);
       await mineUntilPropose(phaseDuration);
 
-      await ministroChain.propose(blindedProposals[0], { from: verifiersAddr[0] });
+      blockHeight = await getBlockHeight(phaseDuration);
+
+      await ministroChain.propose(
+        blindedProposals[0],
+        blockHeight,
+        { from: verifiersAddr[0] },
+      );
       await mineUntilReveal(phaseDuration);
       results = await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
 
