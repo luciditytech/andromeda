@@ -1,6 +1,6 @@
 import { fromAscii } from 'web3-utils';
 
-import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
+import { mineUntilPropose, mineUntilReveal, getBlockHeight } from '../helpers/SpecHelper';
 import { updateActiveStatus } from '../helpers/Verifier';
 
 import createProposals from '../samples/proposals';
@@ -54,8 +54,14 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
       it('should NOT be possible to propose', async () => {
         const awaits = [];
+        const blockHeight = await getBlockHeight(phaseDuration);
         for (let i = 0; i < verifiersCount; i += 1) {
-          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }, true));
+          awaits.push(ministroChain.propose(
+            blindedProposals[i],
+            blockHeight,
+            { from: verifiersAddr[i] },
+            true,
+          ));
         }
 
         await Promise.all(awaits);
@@ -79,8 +85,14 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
           it('should be possible to propose', async () => {
             const awaits = [];
+            const blockHeight = await getBlockHeight(phaseDuration);
+
             for (let i = 0; i < verifiersCount; i += 1) {
-              awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+              awaits.push(ministroChain.propose(
+                blindedProposals[i],
+                blockHeight,
+                { from: verifiersAddr[i] },
+              ));
             }
 
             await Promise.all(awaits);

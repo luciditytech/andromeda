@@ -1,6 +1,6 @@
 import { fromAscii } from 'web3-utils';
 
-import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
+import { getBlockHeight, mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 import { updateEnableStatus } from '../helpers/Verifier';
 
 import createProposals from '../samples/proposals';
@@ -53,9 +53,15 @@ contract('Chain: testing enabled/disabled verifiers', (accounts) => {
       });
 
       it('should NOT be possible to propose', async () => {
+        const blockHeight = await getBlockHeight(phaseDuration);
         const awaits = [];
         for (let i = 0; i < verifiersCount; i += 1) {
-          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }, true));
+          awaits.push(ministroChain.propose(
+            blindedProposals[i],
+            blockHeight,
+            { from: verifiersAddr[i] },
+            true,
+          ));
         }
 
         await Promise.all(awaits);
@@ -78,9 +84,14 @@ contract('Chain: testing enabled/disabled verifiers', (accounts) => {
           });
 
           it('should be possible to propose', async () => {
+            const blockHeigght = await getBlockHeight(phaseDuration);
             const awaits = [];
             for (let i = 0; i < verifiersCount; i += 1) {
-              awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+              awaits.push(ministroChain.propose(
+                blindedProposals[i],
+                blockHeigght,
+                { from: verifiersAddr[i] },
+              ));
             }
 
             await Promise.all(awaits);

@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import { fromAscii } from 'web3-utils';
 
-import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
+import { getBlockHeight, mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 import { balancesPerShard } from '../helpers/Verifier';
 
 import createProposals from '../samples/proposals';
@@ -59,10 +59,15 @@ contract('Chain: testing validation of election', (accounts) => {
   describe('when all verifiers made a proposal', async () => {
     beforeEach(async () => {
       await mineUntilPropose(phaseDuration);
+      const blockHeight = await getBlockHeight(phaseDuration);
 
       const awaits = [];
       for (let i = 0; i < verifiersCount; i += 1) {
-        awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+        awaits.push(ministroChain.propose(
+          blindedProposals[i],
+          blockHeight,
+          { from: verifiersAddr[i] },
+        ));
       }
       const res = await Promise.all(awaits);
       [logPropose] = res[0].LogPropose;

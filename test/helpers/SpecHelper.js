@@ -69,8 +69,18 @@ const mineUntilReveal = async (phaseDuration) => {
   await advanceToBlock(revealStartBlockNumber.toNumber());
 };
 
+const getBlockHeight = async (phaseDuration) => {
+  const blockNumber = await web3.eth.getBlockNumber();
+  return BigNumber(blockNumber)
+    .div(phaseDuration, 10)
+    .div(2, 10)
+    .toString(10)
+    .split('.')[0];
+};
+
 export {
   writeProcessMsg,
   mineUntilReveal,
   mineUntilPropose,
+  getBlockHeight,
 };
