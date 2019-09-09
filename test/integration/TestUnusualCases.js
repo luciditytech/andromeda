@@ -1,6 +1,4 @@
-import BigNumber from 'bignumber.js';
-
-import { getBlockHeight, mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
+import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 
 import createProposals from '../samples/proposals';
 
@@ -10,7 +8,7 @@ const {
 
 contract('Chain - unusual cases', (accounts) => {
   let ministroChain;
-
+  let blockHeight;
   const verifiersCount = 3;
 
   // that testRPC creates 1 block per tx, if you will get revert because of invalid phase,
@@ -36,11 +34,9 @@ contract('Chain - unusual cases', (accounts) => {
   });
 
   describe('when all verifiers made a proposal', async () => {
-    let blockHeigh;
-
     before(async () => {
       await mineUntilPropose(phaseDuration);
-      const blockHeight = await getBlockHeight(phaseDuration);
+      blockHeight = await ministroChain.getBlockHeight();
 
       // start with i=1 so we have one "clean" option to propose for test purposes
       const awaits = [];
@@ -52,26 +48,21 @@ contract('Chain - unusual cases', (accounts) => {
         ));
       }
       await Promise.all(awaits);
-
-      blockHeigh = await ministroChain.getBlockHeight(phaseDuration);
     });
 
-    describe('when noone reveal', async () => {
+    describe('when noone revealed', async () => {
       before(async () => {
         await mineUntilReveal(phaseDuration);
         await mineUntilPropose(phaseDuration);
-      });
 
-      it('should be next exlection cycle', async () => {
-        const blockHeigh2 = await ministroChain.getBlockHeight(phaseDuration);
-        assert(BigNumber(blockHeigh).plus(1).eq(blockHeigh2), 'invalid block height');
+        const prevBlockHeight = blockHeight;
+        blockHeight = await ministroChain.getBlockHeight();
+        assert(prevBlockHeight.lt(blockHeight), 'invalid block height');
       });
-
 
       it('should be possible to propose again (because of new cycle)', async () => {
-        const blockHeight = await getBlockHeight(phaseDuration);
         const awaits = [];
-        for (let i = 1; i < verifiersCount; i += 1) {
+        for (let i = 0; i < verifiersCount; i += 1) {
           awaits.push(ministroChain.propose(
             blindedProposals[i],
             blockHeight,
@@ -81,28 +72,39 @@ contract('Chain - unusual cases', (accounts) => {
         await Promise.all(awaits);
       });
 
-
       describe('when we enter NEXT reveal phase', async () => {
+        let nextBlockHeight;
+
         before(async () => {
-          const blockHeight = await getBlockHeight(phaseDuration);
-          await ministroChain.propose(
-            blindedProposals[0],
-            blockHeight,
-            { from: verifiersAddr[0] },
-          );
+          blockHeight = await ministroChain.getBlockHeight();
           await mineUntilReveal(phaseDuration);
+          await mineUntilPropose(phaseDuration);
+          await mineUntilReveal(phaseDuration);
+          nextBlockHeight = await ministroChain.getBlockHeight();
         });
 
-        it('should still be next exlection cycle', async () => {
-          const blockHeigh2 = await ministroChain.getBlockHeight(phaseDuration);
-          assert(BigNumber(blockHeigh).plus(1).eq(blockHeigh2), 'invalid block height');
-        });
-
-        it('should be able to reveal proposals for current/newest election', async () => {
+        it('should NOT be possible to reveal proposals with previous block height', async () => {
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             awaits
-              .push(ministroChain.reveal(proposals[i], secrets[i], { from: verifiersAddr[i] }));
+              .push(ministroChain
+                .reveal(proposals[i], secrets[i], blockHeight, { from: verifiersAddr[i] }, true));
+          }
+          await Promise.all(awaits);
+        });
+
+        it('should NOT be possible to reveal proposals with current block height', async () => {
+          const awaits = [];
+          for (let i = 0; i < verifiersCount; i += 1) {
+            awaits
+              .push(ministroChain
+                .reveal(
+                  proposals[i],
+                  secrets[i],
+                  nextBlockHeight,
+                  { from: verifiersAddr[i] },
+                  true,
+                ));
           }
           await Promise.all(awaits);
         });

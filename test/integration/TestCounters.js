@@ -17,6 +17,7 @@ contract('Chain - testing counters', (accounts) => {
   const requirePercentOfTokens = 70;
 
   let counter;
+  let blockHeight;
 
   const {
     verifiersAddr,
@@ -29,8 +30,11 @@ contract('Chain - testing counters', (accounts) => {
     counter = new BigNumber(0);
 
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
-      requirePercentOfTokens, true,
+      accounts[0],
+      verifiersAddr,
+      phaseDuration,
+      requirePercentOfTokens,
+      true,
     );
 
     await mineUntilReveal(phaseDuration);
@@ -43,8 +47,9 @@ contract('Chain - testing counters', (accounts) => {
       const blockNumber = await web3.eth.getBlockNumber();
       assert.isTrue(isProposePhase(blockNumber, phaseDuration));
 
-      const blockHeight = await getBlockHeight(phaseDuration);
+      blockHeight = await getBlockHeight(phaseDuration);
       const awaits = [];
+
       for (let i = 0; i < verifiersCount; i += 1) {
         awaits.push(ministroChain.propose(
           blindedProposals[i],
@@ -52,6 +57,7 @@ contract('Chain - testing counters', (accounts) => {
           { from: verifiersAddr[i] },
         ));
       }
+
       await Promise.all(awaits);
     });
 
@@ -69,7 +75,8 @@ contract('Chain - testing counters', (accounts) => {
 
         before(async () => {
           revealResult =
-            await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+            await ministroChain
+              .reveal(proposals[0], secrets[0], blockHeight, { from: verifiersAddr[0] });
         });
 
         it('should be a winner after very first reveal', async () => {
@@ -94,6 +101,7 @@ contract('Chain - testing counters', (accounts) => {
               awaits.push(ministroChain.reveal(
                 proposals[i],
                 secrets[i],
+                blockHeight,
                 { from: verifiersAddr[i] },
               ));
             }
@@ -120,7 +128,7 @@ contract('Chain - testing counters', (accounts) => {
       blindedProposals[0] = web3Utils.soliditySha3(proposals[0], secrets[0]);
     });
 
-    describe('when all propose', async () => {
+    describe('when all proposed', async () => {
       const shards = {};
 
       before(async () => {
@@ -130,7 +138,7 @@ contract('Chain - testing counters', (accounts) => {
         const blockNumber = await web3.eth.getBlockNumber();
         assert.isTrue(isProposePhase(blockNumber, phaseDuration));
 
-        const blockHeight = await getBlockHeight(phaseDuration);
+        blockHeight = await getBlockHeight(phaseDuration);
         const awaits = [];
         for (let i = 0; i < verifiersCount; i += 1) {
           awaits.push(ministroChain.propose(
@@ -182,7 +190,9 @@ contract('Chain - testing counters', (accounts) => {
 
             before(async () => {
               firstResults =
-                await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+                await ministroChain
+                  .reveal(proposals[0], secrets[0], blockHeight, { from: verifiersAddr[0] });
+
               assert.isTrue(firstResults.LogUpdateCounters[0].newWinner, 'first reveal should be a winner');
 
               firstMax = firstResults.LogUpdateCounters[0].counts;
@@ -198,6 +208,7 @@ contract('Chain - testing counters', (accounts) => {
                   awaits.push(ministroChain.reveal(
                     proposals[i],
                     secrets[i],
+                    blockHeight,
                     { from: verifiersAddr[i] },
                   ));
                 }

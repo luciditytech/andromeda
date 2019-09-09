@@ -34,6 +34,7 @@ function ProxyContract() {
 
       assert.strictEqual(logPropose.sender, txAttrLocal.from, 'invalid sender');
       assert.strictEqual(logPropose.blindedProposal, blindedProposal, 'invalid blindedProposal');
+      assert(BigNumber(logPropose.blockHeight).eq(blockHeight), 'invalid blockHeight');
       assert.isNotEmpty(logPropose.shard.toString(10), 'invalid shard');
 
       const vote = await app.getBlockVoter(logPropose.blockHeight, txAttrLocal.from);
@@ -49,7 +50,7 @@ function ProxyContract() {
 
   // @param _proposal bytes32
   // @param _secret bytes32
-  app.reveal = async (proposal, secret, txAttr, expectThrow) => {
+  app.reveal = async (proposal, secret, blockHeight, txAttr, expectThrow) => {
     let blindedProposal;
 
     if (!expectThrow) {
@@ -58,7 +59,7 @@ function ProxyContract() {
 
     const txAttrLocal = app.getTxAttr(txAttr);
 
-    const action = () => app.instance.reveal(proposal, secret, txAttrLocal);
+    const action = () => app.instance.reveal(proposal, secret, blockHeight, txAttrLocal);
 
     const results = await app.executeAction(action, txAttrLocal, null, null, expectThrow);
 
@@ -79,6 +80,7 @@ function ProxyContract() {
 
       assert.strictEqual(logReveal.sender, txAttrLocal.from, 'invalid sender');
       assert.strictEqual(logReveal.proposal, proposal, 'invalid proposal');
+      assert(BigNumber(logReveal.blockHeight).eq(blockHeight), 'invalid blockHeight');
 
       // if we have shard from proposal, we can test it
       if (typeof app.shard[logReveal.blockNumber + blindedProposal] !== 'undefined') {

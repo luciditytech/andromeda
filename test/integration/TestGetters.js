@@ -47,7 +47,8 @@ contract('Chain - testing getters', (accounts) => {
         { from: verifiersAddr[0] },
       );
       await mineUntilReveal(phaseDuration);
-      results = await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+      results = await ministroChain
+        .reveal(proposals[0], secrets[0], blockHeight, { from: verifiersAddr[0] });
 
       ({ sender, blockHeight, proposal } = results.LogReveal[0]);
       ({ shard, balance } = results.LogUpdateCounters[0]);

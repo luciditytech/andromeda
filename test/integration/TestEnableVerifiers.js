@@ -79,17 +79,19 @@ contract('Chain: testing enabled/disabled verifiers', (accounts) => {
         });
 
         describe('when we are in propose phase', async () => {
+          let blockHeight;
+
           before(async () => {
             await mineUntilPropose(phaseDuration);
+            blockHeight = await getBlockHeight(phaseDuration);
           });
 
           it('should be possible to propose', async () => {
-            const blockHeigght = await getBlockHeight(phaseDuration);
             const awaits = [];
             for (let i = 0; i < verifiersCount; i += 1) {
               awaits.push(ministroChain.propose(
                 blindedProposals[i],
-                blockHeigght,
+                blockHeight,
                 { from: verifiersAddr[i] },
               ));
             }
@@ -118,6 +120,7 @@ contract('Chain: testing enabled/disabled verifiers', (accounts) => {
                   awaits.push(ministroChain.reveal(
                     proposals[i],
                     secrets[i],
+                    blockHeight,
                     { from: verifiersAddr[i] },
                   ));
                 }

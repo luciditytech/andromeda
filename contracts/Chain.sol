@@ -89,11 +89,13 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
 
   /// @param _proposal this is proposal in clear form
   /// @param _secret this is secret in clear form
-  function reveal(bytes32 _proposal, bytes32 _secret)
+  function reveal(bytes32 _proposal, bytes32 _secret, uint256 _blockHeight)
   external
   whenRevealPhase
   returns (bool) {
     uint256 blockHeight = getBlockHeight();
+    require(_blockHeight == blockHeight, "invalid blockHeight");
+
     bytes32 proof = createProof(_proposal, _secret);
 
     ChainStorage.Voter memory voter;

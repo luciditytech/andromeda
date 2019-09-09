@@ -19,6 +19,7 @@ const requirePercentOfTokens = 70;
 contract('Chain: testing active/non active verifiers', (accounts) => {
   let ministroChain;
   let verifierRegistry;
+  let blockHeight;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
   const {
@@ -54,7 +55,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
       it('should NOT be possible to propose', async () => {
         const awaits = [];
-        const blockHeight = await getBlockHeight(phaseDuration);
+        blockHeight = await getBlockHeight(phaseDuration);
         for (let i = 0; i < verifiersCount; i += 1) {
           awaits.push(ministroChain.propose(
             blindedProposals[i],
@@ -85,7 +86,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
           it('should be possible to propose', async () => {
             const awaits = [];
-            const blockHeight = await getBlockHeight(phaseDuration);
+            blockHeight = await getBlockHeight(phaseDuration);
 
             for (let i = 0; i < verifiersCount; i += 1) {
               awaits.push(ministroChain.propose(
@@ -119,6 +120,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
                   awaits.push(ministroChain.reveal(
                     proposals[i],
                     secrets[i],
+                    blockHeight,
                     { from: verifiersAddr[i] },
                   ));
                 }

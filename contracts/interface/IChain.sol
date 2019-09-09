@@ -18,7 +18,7 @@ interface IChain {
   );
 
   function propose(bytes32 _blindedProposal, uint256 _blockHeight) external returns(bool);
-  function reveal(bytes32 _proposal, bytes32 _secret) external returns(bool);
+  function reveal(bytes32 _proposal, bytes32 _secret, uint256 _blockHeight) external returns(bool);
 
   function getBlockRoot(uint256 _blockHeight, uint256 _shard) external view returns (bytes32);
   function getBlockVoter(uint256 _blockHeight, address _voter)

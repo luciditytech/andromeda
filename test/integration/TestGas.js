@@ -48,7 +48,8 @@ contract('Chain - test GAS', (accounts) => {
     await Promise.all(awaits);
 
     await mineUntilReveal(phaseDuration);
-    await ministroChain.instance.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
+    await ministroChain.instance
+      .reveal(proposals[0], secrets[0], blockHeight, { from: verifiersAddr[0] });
 
     await mineUntilPropose(phaseDuration);
     blockHeight = await getBlockHeight(phaseDuration);

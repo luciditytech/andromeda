@@ -62,6 +62,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
           awaits.push(ministroChain.reveal(
             proposals[i],
             secrets[i],
+            blockHeight,
             { from: verifiersAddr[i] },
             nonce && i === 0,
           ));

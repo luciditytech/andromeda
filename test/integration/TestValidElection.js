@@ -19,6 +19,7 @@ const phaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
 let logPropose;
+let blockHeight;
 let balanceForShard;
 
 contract('Chain: testing validation of election', (accounts) => {
@@ -59,7 +60,7 @@ contract('Chain: testing validation of election', (accounts) => {
   describe('when all verifiers made a proposal', async () => {
     beforeEach(async () => {
       await mineUntilPropose(phaseDuration);
-      const blockHeight = await getBlockHeight(phaseDuration);
+      blockHeight = await getBlockHeight(phaseDuration);
 
       const awaits = [];
       for (let i = 0; i < verifiersCount; i += 1) {
@@ -95,6 +96,7 @@ contract('Chain: testing validation of election', (accounts) => {
           const { LogUpdateCounters: [res] } = await ministroChain.reveal(
             proposals[i],
             secrets[i],
+            blockHeight,
             { from: verifiersAddr[i] },
           );
 
