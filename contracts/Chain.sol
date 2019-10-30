@@ -270,4 +270,13 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   returns (uint256) {
     return _storage().initialBlockHeights(_shard);
   }
+
+  // override `Registrable.unregister`
+  function unregister(IRegistrable _newInstance)
+  external
+  onlyFromContractRegistry {
+    _unregister(_newInstance);
+
+    // do not kill me after unregistering
+  }
 }
