@@ -4,10 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2019-10-29
 ### Added
+- flattener script
+- Proposals are made for specific `block-height`
 
 ### Changed
+- test with fake dependencies
+
+### Fixed:
+- add missing public method `initialBlockHeights()`
 
 ## [0.4.0] - 2019-03-14
 ### Added

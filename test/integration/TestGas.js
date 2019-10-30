@@ -1,10 +1,8 @@
-import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
+import { getBlockHeight, mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
@@ -21,10 +19,8 @@ contract('Chain - test GAS', (accounts) => {
   } = proposalsObj;
 
   before(async () => {
-    const contractRegistry = await deployContractRegistry();
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
 
@@ -40,9 +36,14 @@ contract('Chain - test GAS', (accounts) => {
     // truffle test <thisFile>
     await mineUntilPropose(phaseDuration);
 
+    let blockHeight = await getBlockHeight(phaseDuration);
     const awaits = [];
     for (let i = 0; i < verifiersAddr.length; i += 1) {
-      awaits.push(ministroChain.instance.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+      awaits.push(ministroChain.instance.propose(
+        blindedProposals[i],
+        blockHeight,
+        { from: verifiersAddr[i] },
+      ));
     }
     await Promise.all(awaits);
 
@@ -50,6 +51,12 @@ contract('Chain - test GAS', (accounts) => {
     await ministroChain.instance.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
 
     await mineUntilPropose(phaseDuration);
-    await ministroChain.instance.propose(blindedProposals[0], { from: verifiersAddr[0] });
+    blockHeight = await getBlockHeight(phaseDuration);
+
+    await ministroChain.instance.propose(
+      blindedProposals[0],
+      blockHeight,
+      { from: verifiersAddr[0] },
+    );
   });
 });

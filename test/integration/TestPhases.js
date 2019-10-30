@@ -1,15 +1,13 @@
-import { mineUntilPropose, mineUntilReveal, writeProcessMsg } from '../helpers/SpecHelper';
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
+import { getBlockHeight, mineUntilPropose, mineUntilReveal, writeProcessMsg } from '../helpers/SpecHelper';
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
 contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
-  const phaseDuration = accounts.length - 1;
-  const verifiersCount = phaseDuration;
+  const phaseDuration = accounts.length * 2;
+  const verifiersCount = accounts.length - 1;
   const requirePercentOfTokens = 70;
 
   let ministroChain;
@@ -22,11 +20,8 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
   } = createProposals(verifiersCount, accounts);
 
   before(async () => {
-    const contractRegistry = await deployContractRegistry();
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
-
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
   });
@@ -42,17 +37,26 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
       let nonce = true;
 
       for (let numberOfCycles = 0; numberOfCycles < 3; numberOfCycles += 1) {
+        // eslint-disable-next-line
+        const blockHeight = await getBlockHeight(phaseDuration);
+
         // for very first time, we are already in propose,
         // so we have 1 block less - that is why we need to start from 1.
         for (let i = nonce ? 1 : 0; blindedProposals[i]; i += 1) {
-          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+          awaits.push(ministroChain.propose(
+            blindedProposals[i],
+            blockHeight,
+            { from: verifiersAddr[i] },
+          ));
           writeProcessMsg('proposing... ');
         }
-
 
         // eslint-disable-next-line
         await Promise.all(awaits);
         awaits = [];
+
+        // eslint-disable-next-line
+        await mineUntilReveal(phaseDuration);
 
         for (let i = 0; proposals[i]; i += 1) {
           awaits.push(ministroChain.reveal(
@@ -67,6 +71,9 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
         // eslint-disable-next-line
         await Promise.all(awaits);
         awaits = [];
+
+        // eslint-disable-next-line
+        await mineUntilPropose(phaseDuration);
 
         nonce = false;
       }

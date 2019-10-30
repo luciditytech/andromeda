@@ -1,13 +1,10 @@
 import BigNumber from 'bignumber.js';
 
-import { mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
-
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
+import { getBlockHeight, mineUntilPropose, mineUntilReveal } from '../helpers/SpecHelper';
 
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
@@ -18,7 +15,7 @@ contract('Chain - unusual cases', (accounts) => {
 
   // that testRPC creates 1 block per tx, if you will get revert because of invalid phase,
   // then increase phase duration
-  const phaseDuration = verifiersCount * 3;
+  const phaseDuration = verifiersCount * 5;
   const requirePercentOfTokens = 70;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
@@ -27,11 +24,8 @@ contract('Chain - unusual cases', (accounts) => {
   } = proposalsObj;
 
   before(async () => {
-    const contractRegistry = await deployContractRegistry();
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
-
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
 
@@ -46,15 +40,20 @@ contract('Chain - unusual cases', (accounts) => {
 
     before(async () => {
       await mineUntilPropose(phaseDuration);
+      const blockHeight = await getBlockHeight(phaseDuration);
 
       // start with i=1 so we have one "clean" option to propose for test purposes
       const awaits = [];
       for (let i = 1; i < verifiersCount; i += 1) {
-        awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+        awaits.push(ministroChain.propose(
+          blindedProposals[i],
+          blockHeight,
+          { from: verifiersAddr[i] },
+        ));
       }
       await Promise.all(awaits);
 
-      blockHeigh = await ministroChain.getBlockHeight();
+      blockHeigh = await ministroChain.getBlockHeight(phaseDuration);
     });
 
     describe('when noone reveal', async () => {
@@ -64,15 +63,20 @@ contract('Chain - unusual cases', (accounts) => {
       });
 
       it('should be next exlection cycle', async () => {
-        const blockHeigh2 = await ministroChain.getBlockHeight();
+        const blockHeigh2 = await ministroChain.getBlockHeight(phaseDuration);
         assert(BigNumber(blockHeigh).plus(1).eq(blockHeigh2), 'invalid block height');
       });
 
 
       it('should be possible to propose again (because of new cycle)', async () => {
+        const blockHeight = await getBlockHeight(phaseDuration);
         const awaits = [];
         for (let i = 1; i < verifiersCount; i += 1) {
-          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+          awaits.push(ministroChain.propose(
+            blindedProposals[i],
+            blockHeight,
+            { from: verifiersAddr[i] },
+          ));
         }
         await Promise.all(awaits);
       });
@@ -80,12 +84,17 @@ contract('Chain - unusual cases', (accounts) => {
 
       describe('when we enter NEXT reveal phase', async () => {
         before(async () => {
-          await ministroChain.propose(blindedProposals[0], { from: verifiersAddr[0] });
+          const blockHeight = await getBlockHeight(phaseDuration);
+          await ministroChain.propose(
+            blindedProposals[0],
+            blockHeight,
+            { from: verifiersAddr[0] },
+          );
           await mineUntilReveal(phaseDuration);
         });
 
         it('should still be next exlection cycle', async () => {
-          const blockHeigh2 = await ministroChain.getBlockHeight();
+          const blockHeigh2 = await ministroChain.getBlockHeight(phaseDuration);
           assert(BigNumber(blockHeigh).plus(1).eq(blockHeigh2), 'invalid block height');
         });
 

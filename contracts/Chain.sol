@@ -47,7 +47,8 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   ///      2. OR, if nobody revealed in previous cycle, we continue previous state
   ///         with all previous getBlockVoter/proposals
   /// @param _blindedProposal this is hash of the proposal + secret
-  function propose(bytes32 _blindedProposal)
+  /// @param _blockHeight it's election ID
+  function propose(bytes32 _blindedProposal, uint256 _blockHeight)
   external
   whenProposePhase
   // we have external call in `_getVerifierInfo` to `verifierRegistry`,
@@ -56,14 +57,16 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   returns (bool) {
     uint256 blockHeight = getBlockHeight();
 
+    require(_blockHeight == blockHeight, "invalid blockHeight");
     require(_blindedProposal != bytes32(0), "_blindedProposal is empty");
     require(_storage().isUniqueBlindedProposal(blockHeight, _blindedProposal), "blindedProposal not unique");
 
     bool active;
+    bool enabled;
     uint256 balance;
     uint256 shard;
-    (active, balance, shard) = _getVerifierInfo(msg.sender);
-    require(active, "verifier is not in the registry or not active");
+    (active, enabled, balance, shard) = _getVerifierInfo(msg.sender);
+    require(active && enabled, "verifier is not in the registry or not active");
     require(balance > 0, "verifier has no right to propose");
 
     ChainStorage.Voter memory voter;
@@ -71,7 +74,6 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
 
     require(voter.blindedProposal == bytes32(0), "verifier already proposed in this round");
 
-    // now we can save proposal
     _storage().setUniqueBlindedProposal(blockHeight, _blindedProposal);
 
     _storage().updateBlockVoter(blockHeight, msg.sender, _blindedProposal, shard, balance);
@@ -151,10 +153,9 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     emit LogUpdateCounters(msg.sender, blockHeight, _shard, _proposal, shardProposalsCount, balance, newWinner, tokensBalance);
   }
 
-  function _getVerifierInfo(address _verifier) internal view returns (bool active, uint256 balance, uint256 shard) {
+  function _getVerifierInfo(address _verifier) internal view returns (bool active, bool enabled, uint256 balance, uint256 shard) {
     IVerifierRegistry registry = IVerifierRegistry(contractRegistry.contractByName("VerifierRegistry"));
-
-    ( , , , active, balance, shard) = registry.verifiers(_verifier);
+    ( , , , active, balance, shard, enabled) = registry.verifiers(_verifier);
   }
 
   function _getTotalTokenBalancePerShard(uint256 _shard) internal view returns (uint256) {
@@ -207,6 +208,12 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     return ChainStorage(address(singleStorage));
   }
 
+  // temporary function, should not be part of protocol,
+  // we might want to remove it when we will be live ready
+  function setInitialBlockHeight(uint256 _shard, uint256 _blockHeight) external onlyOwner {
+    _storage().setInitialBlockHeight(_shard, _blockHeight);
+  }
+
   function updateMinimumStakingTokenPercentage(uint8 _minimumStakingTokenPercentage)
   public
   onlyOwner
@@ -255,5 +262,12 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   view
   returns (bool) {
     return getCurrentElectionCycleBlock() < blocksPerPhase();
+  }
+
+  function initialBlockHeights(uint256 _shard)
+  public
+  view
+  returns (uint256) {
+    return _storage().initialBlockHeights(_shard);
   }
 }

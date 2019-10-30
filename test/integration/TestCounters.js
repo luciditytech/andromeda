@@ -1,13 +1,11 @@
 import web3Utils from 'web3-utils';
 import BigNumber from 'bignumber.js';
 
-import { mineUntilReveal, mineUntilPropose } from '../helpers/SpecHelper';
-import { registerVerifiers } from '../helpers/RegisterVerifiers';
+import { mineUntilReveal, mineUntilPropose, getBlockHeight } from '../helpers/SpecHelper';
 import { isProposePhase, isRevealPhase } from '../helpers/CycleFunctions';
 import createProposals from '../samples/proposals';
 
 const {
-  deployContractRegistry,
   deployChain,
 } = require('../helpers/deployers');
 
@@ -30,11 +28,8 @@ contract('Chain - testing counters', (accounts) => {
   before(async () => {
     counter = new BigNumber(0);
 
-    const contractRegistry = await deployContractRegistry();
-
-    await registerVerifiers(accounts[0], verifiersAddr, contractRegistry.address);
     ministroChain = await deployChain(
-      accounts[0], contractRegistry.address, phaseDuration,
+      accounts[0], verifiersAddr, phaseDuration,
       requirePercentOfTokens, true,
     );
 
@@ -48,9 +43,14 @@ contract('Chain - testing counters', (accounts) => {
       const blockNumber = await web3.eth.getBlockNumber();
       assert.isTrue(isProposePhase(blockNumber, phaseDuration));
 
+      const blockHeight = await getBlockHeight(phaseDuration);
       const awaits = [];
       for (let i = 0; i < verifiersCount; i += 1) {
-        awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+        awaits.push(ministroChain.propose(
+          blindedProposals[i],
+          blockHeight,
+          { from: verifiersAddr[i] },
+        ));
       }
       await Promise.all(awaits);
     });
@@ -130,9 +130,14 @@ contract('Chain - testing counters', (accounts) => {
         const blockNumber = await web3.eth.getBlockNumber();
         assert.isTrue(isProposePhase(blockNumber, phaseDuration));
 
+        const blockHeight = await getBlockHeight(phaseDuration);
         const awaits = [];
         for (let i = 0; i < verifiersCount; i += 1) {
-          awaits.push(ministroChain.propose(blindedProposals[i], { from: verifiersAddr[i] }));
+          awaits.push(ministroChain.propose(
+            blindedProposals[i],
+            blockHeight,
+            { from: verifiersAddr[i] },
+          ));
         }
         const results = await Promise.all(awaits);
 

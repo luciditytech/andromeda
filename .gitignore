@@ -12,3 +12,4 @@ coverageEnv
 
 .env
 all.sol
+all_storage.sol

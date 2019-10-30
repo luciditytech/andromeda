@@ -17,7 +17,7 @@ interface IChain {
     uint256 totalTokenBalanceForShard
   );
 
-  function propose(bytes32 _blindedProposal) external returns(bool);
+  function propose(bytes32 _blindedProposal, uint256 _blockHeight) external returns(bool);
   function reveal(bytes32 _proposal, bytes32 _secret) external returns(bool);
 
   function getBlockRoot(uint256 _blockHeight, uint256 _shard) external view returns (bytes32);
