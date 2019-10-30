@@ -46,17 +46,28 @@ contract ChainStorage is StorageBase {
 
   bool public updateMinimumStakingTokenPercentageEnabled;
 
-  uint8 public blocksPerPhase;
+  uint8 public blocksPerPropose;
+  uint8 public blocksPerReveal;
 
   uint8 public minimumStakingTokenPercentage;
 
-  event LogChainConfig(uint8 blocksPerPhase, uint8 requirePercentOfTokens, bool updateMinimumStakingTokenPercentageEnabled);
+  event LogChainConfig(
+    uint8 blocksPerPropose,
+    uint8 blocksPerReveal,
+    uint8 requirePercentOfTokens,
+    bool updateMinimumStakingTokenPercentageEnabled
+  );
 
-  constructor(uint8 _blocksPerPhase,
+  constructor(
+    uint8 _blocksPerPropose,
+    uint8 _blocksPerReveal,
     uint8 _minimumStakingTokenPercentage,
     bool _updateMinimumStakingTokenPercentageEnabled) public {
-    require(_blocksPerPhase > 0, "_blocksPerPhase can't be empty");
-    blocksPerPhase = _blocksPerPhase;
+    require(_blocksPerPropose > 0, "_blocksPerPhase can't be empty");
+    require(_blocksPerReveal > 0, "_blocksPerReveal can't be empty");
+
+    blocksPerPropose = _blocksPerPropose;
+    blocksPerReveal = _blocksPerReveal;
 
     require(_minimumStakingTokenPercentage > 0, "_minimumStakingTokenPercentage can't be empty");
     require(_minimumStakingTokenPercentage <= 100, "_minimumStakingTokenPercentage can't be over 100%");
@@ -64,7 +75,12 @@ contract ChainStorage is StorageBase {
 
     updateMinimumStakingTokenPercentageEnabled = _updateMinimumStakingTokenPercentageEnabled;
 
-    emit LogChainConfig(_blocksPerPhase, _minimumStakingTokenPercentage, _updateMinimumStakingTokenPercentageEnabled);
+    emit LogChainConfig(
+      _blocksPerPropose,
+      _blocksPerReveal,
+      _minimumStakingTokenPercentage,
+      _updateMinimumStakingTokenPercentageEnabled
+    );
   }
 
   function getInitialBlockHeight(uint256 _shard) public view returns (uint256) {
@@ -160,6 +176,22 @@ contract ChainStorage is StorageBase {
     return true;
   }
 
+  function updatePhasesDurations(uint8 _blocksPerPropose, uint8 _blocksPerReveal)
+  external
+  onlyFromStorageOwner
+  returns (bool) {
+    require(_blocksPerPropose > 0, "_blocksPerPropose can't be empty");
+    require(_blocksPerReveal > 0, "_blocksPerReveal can't be empty");
+    require(blocksPerPropose + blocksPerReveal == _blocksPerPropose + _blocksPerReveal, "election duration must be fixed");
+
+    blocksPerPropose = _blocksPerPropose;
+    blocksPerReveal = _blocksPerReveal;
+
+    emit LogChainConfig(blocksPerPropose, blocksPerReveal, minimumStakingTokenPercentage, true);
+
+    return true;
+  }
+
   function updateMinimumStakingTokenPercentage(uint8 _minimumStakingTokenPercentage)
   external
   onlyFromStorageOwner
@@ -170,7 +202,7 @@ contract ChainStorage is StorageBase {
     require(_minimumStakingTokenPercentage <= 100, "_minimumStakingTokenPercentage can't be over 100%");
     minimumStakingTokenPercentage = _minimumStakingTokenPercentage;
 
-    emit LogChainConfig(blocksPerPhase, _minimumStakingTokenPercentage, true);
+    emit LogChainConfig(blocksPerPropose, blocksPerReveal, _minimumStakingTokenPercentage, true);
 
     return true;
   }
