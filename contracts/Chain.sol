@@ -19,14 +19,11 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
 
   bytes32  constant NAME = "Chain";
 
-  modifier whenProposePhase() {
-    require(getCurrentElectionCycleBlock() < blocksPerPhase(), "we are not in propose phase");
-    _;
-  }
-  modifier whenRevealPhase() {
-    require(getCurrentElectionCycleBlock() >= blocksPerPhase(), "we are not in reveal phase");
-    _;
-  }
+  // @dev temporary storage until we implement support for multiple storages
+  //      block_height => shard => anyProposal?
+  mapping (uint256 => mapping (uint256 => bool)) public anyProposals;
+  // @dev block_height => %
+  mapping (uint256 => uint8) public minimumStakingTokenPercentageForElection;
 
   constructor (
     IContractRegistry _contractRegistry,
@@ -50,7 +47,6 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   /// @param _blockHeight it's election ID
   function propose(bytes32 _blindedProposal, uint256 _blockHeight)
   external
-  whenProposePhase
   // we have external call in `_getVerifierInfo` to `verifierRegistry`,
   // so `nonReentrant` can be additional safety feature here
   nonReentrant
@@ -68,6 +64,7 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     (active, enabled, balance, shard) = _getVerifierInfo(msg.sender);
     require(active && enabled, "verifier is not in the registry or not active");
     require(balance > 0, "verifier has no right to propose");
+    require(isProposePhase(shard), "it's not propose phase");
 
     ChainStorage.Voter memory voter;
     (voter.blindedProposal, voter.shard, voter.proposal, voter.balance) = _storage().getBlockVoter(blockHeight, msg.sender);
@@ -82,22 +79,33 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
       _storage().setInitialBlockHeight(shard, blockHeight);
     }
 
+    anyProposals[blockHeight][shard] = true;
+
     emit LogPropose(msg.sender, blockHeight, _blindedProposal, shard, balance);
 
     return true;
+  }
+
+  function isProposePhase(uint256 _shard) public view returns (bool) {
+    return (getCurrentElectionCycleBlock() < blocksPerPhase()) || !anyProposals[getBlockHeight()][_shard];
+  }
+
+  function isRevealPhase(uint256 _shard) public view returns (bool) {
+    return !isProposePhase(_shard);
   }
 
   /// @param _proposal this is proposal in clear form
   /// @param _secret this is secret in clear form
   function reveal(bytes32 _proposal, bytes32 _secret)
   external
-  whenRevealPhase
   returns (bool) {
     uint256 blockHeight = getBlockHeight();
     bytes32 proof = createProof(_proposal, _secret);
 
     ChainStorage.Voter memory voter;
     (voter.blindedProposal, voter.shard, voter.proposal, voter.balance) = _storage().getBlockVoter(blockHeight, msg.sender);
+
+    require(isRevealPhase(voter.shard), "we are not in reveal phase");
 
     require(voter.blindedProposal == proof, "your proposal do not exists (are you verifier?) OR invalid proof");
     require(voter.proposal == bytes32(0), "you already revealed");
@@ -107,9 +115,17 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     _updateCounters(voter.shard, _proposal);
     _storage().pushBlockVerifierAddress(blockHeight, msg.sender);
 
+    _setMinimumStakingTokenPercentageFor(blockHeight);
+
     emit LogReveal(msg.sender, blockHeight, _proposal);
 
     return true;
+  }
+
+  function _setMinimumStakingTokenPercentageFor(uint256 _blockHeight) internal {
+    if (minimumStakingTokenPercentageForElection[_blockHeight] > 0) return;
+
+    minimumStakingTokenPercentageForElection[_blockHeight] = _storage().minimumStakingTokenPercentage();
   }
 
   function getBlockHeight() public view returns (uint256) {
@@ -199,9 +215,14 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   }
 
   function isElectionValid(uint256 _blockHeight, uint256 _shard) external view returns (bool) {
+    if (minimumStakingTokenPercentageForElection[_blockHeight] == 0) return false;
+    if (!anyProposals[_blockHeight][_shard]) return false;
+
     uint256 balance = _storage().getBlockBalance(_blockHeight, _shard);
     if (balance == 0) return false;
-    return _storage().getBlockMaxVotes(_blockHeight, _shard) * 100 / balance >= minimumStakingTokenPercentage();
+
+    uint8 tokenPercentage = uint8(_storage().getBlockMaxVotes(_blockHeight, _shard) * 100 / balance);
+    return tokenPercentage >= minimumStakingTokenPercentageForElection[_blockHeight];
   }
 
   function _storage() private view returns (ChainStorage) {
@@ -255,13 +276,6 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   view
   returns (uint256) {
     return block.number.sub(getCurrentElectionCycleBlock());
-  }
-
-  function isProposePhase()
-  public
-  view
-  returns (bool) {
-    return getCurrentElectionCycleBlock() < blocksPerPhase();
   }
 
   function initialBlockHeights(uint256 _shard)

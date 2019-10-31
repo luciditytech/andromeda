@@ -26,6 +26,7 @@ interface IChain {
   function getBlockCount(uint256 _blockHeight, uint256 _shard, bytes32 _proposal) external view returns (uint256);
 
   function isElectionValid(uint256 _blockHeight, uint256 _shard) external view returns (bool);
-  function isProposePhase() external view returns (bool);
+  function isProposePhase(uint256 _shard) external view returns (bool);
+  function isRevealPhase(uint256 _shard) external view returns (bool);
   function contractName() external view returns(bytes32);
 }
