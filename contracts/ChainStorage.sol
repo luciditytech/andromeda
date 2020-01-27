@@ -17,12 +17,12 @@ contract ChainStorage is StorageBase {
   /// @dev structure of block that is created for each election
   struct Block {
     /// @dev shard => root of merkle tree (the winner)
-    mapping (uint256 => bytes32) roots;
-    mapping (bytes32 => bool) uniqueBlindedProposals;
-    mapping (address => Voter) voters;
+    mapping(uint256 => bytes32) roots;
+    mapping(bytes32 => bool) uniqueBlindedProposals;
+    mapping(address => Voter) voters;
 
     /// @dev shard => max votes
-    mapping (uint256 => uint256) maxsVotes;
+    mapping(uint256 => uint256) maxsVotes;
 
     // shard => proposal => counts
     // Im using mapping, because its less gas consuming that array,
@@ -30,33 +30,43 @@ contract ChainStorage is StorageBase {
     // unfortunately we can't be able to delete this data to release gas, why?
     // because to do this, we need to save all the keys and then run loop for all keys... that may cause OOG
     // also storing keys is more gas consuming so... I made decision to stay with mapping and never delete history
-    mapping (uint256 => mapping(bytes32 => uint256)) counts;
+    mapping(uint256 => mapping(bytes32 => uint256)) counts;
 
     /// @dev shard => total amount of tokens
-    mapping (uint256 => uint256) balancesPerShard;
+    mapping(uint256 => uint256) balancesPerShard;
 
     address[] verifierAddresses;
   }
 
   /// @dev blockHeight => Block - results of each elections will be saved here: one block (array element) per election
-  mapping (uint256 => Block) blocks;
+  mapping(uint256 => Block) blocks;
 
   /// @dev shard => blockHeight
-  mapping (uint256 => uint256) public initialBlockHeights;
+  mapping(uint256 => uint256) public initialBlockHeights;
 
   bool public updateMinimumStakingTokenPercentageEnabled;
 
-  uint8 public blocksPerPhase;
+  uint8 public blocksPerPropose;
+  uint8 public blocksPerReveal;
 
   uint8 public minimumStakingTokenPercentage;
 
-  event LogChainConfig(uint8 blocksPerPhase, uint8 requirePercentOfTokens, bool updateMinimumStakingTokenPercentageEnabled);
+  event LogChainConfig(
+    uint8 blocksPerPropose,
+    uint8 blocksPerReveal,
+    uint8 requirePercentOfTokens,
+    bool updateMinimumStakingTokenPercentageEnabled
+  );
 
-  constructor(uint8 _blocksPerPhase,
+  constructor(
+    uint8 _blocksPerPropose,
+    uint8 _blocksPerReveal,
     uint8 _minimumStakingTokenPercentage,
     bool _updateMinimumStakingTokenPercentageEnabled) public {
-    require(_blocksPerPhase > 0, "_blocksPerPhase can't be empty");
-    blocksPerPhase = _blocksPerPhase;
+    require(_blocksPerPropose > 0, "_blocksPerPropose can't be empty");
+    require(_blocksPerReveal > 0, "_blocksPerReveal can't be empty");
+    blocksPerPropose = _blocksPerPropose;
+    blocksPerReveal = _blocksPerReveal;
 
     require(_minimumStakingTokenPercentage > 0, "_minimumStakingTokenPercentage can't be empty");
     require(_minimumStakingTokenPercentage <= 100, "_minimumStakingTokenPercentage can't be over 100%");
@@ -64,7 +74,12 @@ contract ChainStorage is StorageBase {
 
     updateMinimumStakingTokenPercentageEnabled = _updateMinimumStakingTokenPercentageEnabled;
 
-    emit LogChainConfig(_blocksPerPhase, _minimumStakingTokenPercentage, _updateMinimumStakingTokenPercentageEnabled);
+    emit LogChainConfig(
+      _blocksPerPropose,
+      _blocksPerReveal,
+      _minimumStakingTokenPercentage,
+      _updateMinimumStakingTokenPercentageEnabled
+    );
   }
 
   function getInitialBlockHeight(uint256 _shard) public view returns (uint256) {
@@ -147,7 +162,7 @@ contract ChainStorage is StorageBase {
   }
 
   function updateBlockVoter(uint256 _blockHeight, address _voterAddr, bytes32 _blindedProposal, uint256 _shard, uint256 _balance)
-    external onlyFromStorageOwner returns (bool) {
+  external onlyFromStorageOwner returns (bool) {
     Voter storage voter = blocks[_blockHeight].voters[_voterAddr];
     voter.blindedProposal = _blindedProposal;
     voter.shard = _shard;
@@ -170,7 +185,7 @@ contract ChainStorage is StorageBase {
     require(_minimumStakingTokenPercentage <= 100, "_minimumStakingTokenPercentage can't be over 100%");
     minimumStakingTokenPercentage = _minimumStakingTokenPercentage;
 
-    emit LogChainConfig(blocksPerPhase, _minimumStakingTokenPercentage, true);
+    emit LogChainConfig(blocksPerPropose, blocksPerReveal, _minimumStakingTokenPercentage, true);
 
     return true;
   }

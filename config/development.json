@@ -10,7 +10,8 @@
     "verifiersPerShard": "10"
   },
   "Chain": {
-    "blocksPerPhase": "10",
+    "blocksPerPropose": "100",
+    "blocksPerReveal": "10",
     "minimumStakingTokenPercentage": "70"
   },
   "ContractRegistry": {

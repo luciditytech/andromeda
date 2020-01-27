@@ -1,25 +1,29 @@
-function blockOfCycle(currentBlock, phaseDuration) {
-  return currentBlock % (phaseDuration * 2);
+function blockOfCycle(currentBlock, cycleDuration) {
+  return currentBlock % cycleDuration;
 }
 
-function isProposePhase(currentBlock, phaseDuration) {
-  return blockOfCycle(currentBlock, phaseDuration) < phaseDuration;
+function isProposePhase(currentBlock, proposePhaseDuration, revealPhaseDuration) {
+  const cycleBlock = blockOfCycle(currentBlock, proposePhaseDuration + revealPhaseDuration);
+  return cycleBlock < proposePhaseDuration;
 }
 
-function isRevealPhase(currentBlock, phaseDuration) {
-  return !isProposePhase(currentBlock, phaseDuration);
+function isRevealPhase(currentBlock, proposePhaseDuration, revealPhaseDuration) {
+  return !isProposePhase(currentBlock, proposePhaseDuration, revealPhaseDuration);
 }
 
-function blocksToWaitForPropose(currentBlock, phaseDuration) {
-  if (isProposePhase(currentBlock, phaseDuration)) return 0;
+function blocksToWaitForPropose(currentBlock, proposePhaseDuration, revealPhaseDuration) {
+  if (isProposePhase(currentBlock, proposePhaseDuration, revealPhaseDuration)) return 0;
 
-  return (phaseDuration * 2) - blockOfCycle(currentBlock, phaseDuration);
+  // +1 because we want to be in first block in a phase
+  return (proposePhaseDuration + revealPhaseDuration + 1) -
+    blockOfCycle(currentBlock, proposePhaseDuration + revealPhaseDuration);
 }
 
-function blocksToWaitForReveal(currentBlock, phaseDuration) {
-  if (isRevealPhase(currentBlock, phaseDuration)) return 0;
+function blocksToWaitForReveal(currentBlock, proposePhaseDuration, revealPhaseDuration) {
+  if (isRevealPhase(currentBlock, proposePhaseDuration, revealPhaseDuration)) return 0;
 
-  return phaseDuration - blockOfCycle(currentBlock, phaseDuration);
+  return proposePhaseDuration -
+    blockOfCycle(currentBlock, proposePhaseDuration + revealPhaseDuration);
 }
 
 export {

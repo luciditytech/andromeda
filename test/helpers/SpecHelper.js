@@ -37,6 +37,8 @@ const advanceToBlock = async (number) => {
   const blockNumber = await web3.eth.getBlockNumber();
   if (blockNumber > number) {
     throw Error(`block number ${number} is in the past (current is ${blockNumber})`);
+  } else if (blockNumber === number) {
+    return Promise.resolve();
   }
 
   const awaits = [];
@@ -50,30 +52,32 @@ const advanceToBlock = async (number) => {
   return Promise.all(awaits);
 };
 
-const mineUntilPropose = async (phaseDuration) => {
+const mineUntilPropose = async (proposePhaseDuration, revealPhaseDuration) => {
   const blockNumber = await web3.eth.getBlockNumber();
+
   const toMine =
-    blocksToWaitForPropose(blockNumber, phaseDuration);
+    blocksToWaitForPropose(blockNumber, proposePhaseDuration, revealPhaseDuration);
 
   const prosalStartBlockNumber = new BigNumber(blockNumber).plus(toMine);
 
   await advanceToBlock(prosalStartBlockNumber.toNumber());
 };
 
-const mineUntilReveal = async (phaseDuration) => {
+const mineUntilReveal = async (proposePhaseDuration, revealPhaseDuration) => {
   const blockNumber = await web3.eth.getBlockNumber();
+
   const toMine =
-    blocksToWaitForReveal(blockNumber, phaseDuration);
+    blocksToWaitForReveal(blockNumber, proposePhaseDuration, revealPhaseDuration);
 
   const revealStartBlockNumber = new BigNumber(blockNumber).plus(toMine);
   await advanceToBlock(revealStartBlockNumber.toNumber());
 };
 
-const getBlockHeight = async (phaseDuration) => {
+const getBlockHeight = async (proposePhaseDuration, revealPhaseDuration) => {
   const blockNumber = await web3.eth.getBlockNumber();
+
   return BigNumber(blockNumber)
-    .div(phaseDuration, 10)
-    .div(2, 10)
+    .div(parseInt(proposePhaseDuration, 10) + parseInt(revealPhaseDuration, 10), 10)
     .toString(10)
     .split('.')[0];
 };

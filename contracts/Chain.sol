@@ -20,11 +20,11 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   bytes32  constant NAME = "Chain";
 
   modifier whenProposePhase() {
-    require(getCurrentElectionCycleBlock() < blocksPerPhase(), "we are not in propose phase");
+    require(getCurrentElectionCycleBlock() < blocksPerPropose(), "we are not in propose phase");
     _;
   }
   modifier whenRevealPhase() {
-    require(getCurrentElectionCycleBlock() >= blocksPerPhase(), "we are not in reveal phase");
+    require(getCurrentElectionCycleBlock() >= blocksPerPropose(), "we are not in reveal phase");
     _;
   }
 
@@ -113,7 +113,7 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   }
 
   function getBlockHeight() public view returns (uint256) {
-    return block.number.div(uint256(blocksPerPhase()) * 2);
+    return block.number.div(uint256(blocksPerPropose() + blocksPerReveal()) );
   }
 
   /// @dev this function needs to be called each time we successfully reveal a proposal
@@ -235,18 +235,25 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     return _storage().minimumStakingTokenPercentage();
   }
 
-  function blocksPerPhase()
+  function blocksPerPropose()
   public
   view
   returns (uint8) {
-    return _storage().blocksPerPhase();
+    return _storage().blocksPerPropose();
+  }
+
+  function blocksPerReveal()
+  public
+  view
+  returns (uint8) {
+    return _storage().blocksPerReveal();
   }
 
   function getCurrentElectionCycleBlock()
   public
   view
   returns (uint256) {
-    return block.number % (uint256(blocksPerPhase()) * 2);
+    return block.number % (uint256(blocksPerPropose() + blocksPerReveal()));
   }
 
   /// @return first block number (blockchain block) of current cycle
@@ -261,7 +268,7 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   public
   view
   returns (bool) {
-    return getCurrentElectionCycleBlock() < blocksPerPhase();
+    return getCurrentElectionCycleBlock() < blocksPerPropose();
   }
 
   function initialBlockHeights(uint256 _shard)

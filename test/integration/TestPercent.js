@@ -7,7 +7,8 @@ const {
 } = require('../helpers/deployers');
 
 const verifiersCount = 9;
-const phaseDuration = 5 * verifiersCount;
+const proposePhaseDuration = 5 * verifiersCount;
+const revealPhaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
 contract('Chain: testing minimumStakingTokenPercentage - update enabled', (accounts) => {
@@ -18,7 +19,7 @@ contract('Chain: testing minimumStakingTokenPercentage - update enabled', (accou
 
   before(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
   });
@@ -51,7 +52,7 @@ contract('Chain: testing minimumStakingTokenPercentage - update disabled', (acco
 
   before(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, false,
     );
   });

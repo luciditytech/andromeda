@@ -11,7 +11,8 @@ const {
 } = require('../helpers/deployers');
 
 const verifiersCount = 3;
-const phaseDuration = 5 * verifiersCount;
+const proposePhaseDuration = 5 * verifiersCount;
+const revealPhaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
 contract('Chain: 1 or more verifiers scenario (base on configuration)', (accounts) => {
@@ -24,29 +25,29 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
 
   beforeEach(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
 
     const blindedProposalCheck = await ministroChain.createProof(proposals[0], secrets[0]);
     assert.strictEqual(blindedProposals[0], blindedProposalCheck, 'Hasher do not produce same output as blockchain keccak256');
 
-    await mineUntilReveal(phaseDuration);
+    await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
   });
 
 
   describe('when we are in propose phase', async () => {
     beforeEach(async () => {
-      await mineUntilPropose(phaseDuration);
+      await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
 
       const blockNumber = await web3.eth.getBlockNumber();
-      assert.isTrue(isProposePhase(blockNumber, phaseDuration));
+      assert.isTrue(isProposePhase(blockNumber, proposePhaseDuration, revealPhaseDuration));
     });
 
     describe('passing tests', async () => {
       it('should be possible to propose', async () => {
         const awaits = [];
-        const blockHeight = await getBlockHeight(phaseDuration);
+        const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
         for (let i = 0; i < verifiersCount; i += 1) {
           awaits.push(ministroChain.propose(
             blindedProposals[i],
@@ -62,7 +63,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
     describe('failing tests', async () => {
       describe('when all made valid proposal already', async () => {
         beforeEach(async () => {
-          const blockHeight = await getBlockHeight(phaseDuration);
+          const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             awaits.push(ministroChain.propose(
@@ -75,7 +76,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         });
 
         it('should NOT be possible to propose same proposal again', async () => {
-          const blockHeight = await getBlockHeight(phaseDuration);
+          const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             awaits.push(ministroChain.propose(
@@ -89,7 +90,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         });
 
         it('should NOT be possible to propose same proposal using different secrets by the same verifier', async () => {
-          const blockHeight = await getBlockHeight(phaseDuration);
+          const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             const differentSecret = web3Utils.soliditySha3(secrets[i]);
@@ -105,7 +106,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         });
 
         it('should NOT be possible to propose different proposal by same verifier', async () => {
-          const blockHeight = await getBlockHeight(phaseDuration);
+          const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
           const awaits = [];
           for (let i = 0; i < verifiersCount; i += 1) {
             // lets prepare another proposal
@@ -134,7 +135,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
 
     describe('when all proposed', async () => {
       beforeEach(async () => {
-        const blockHeight = await getBlockHeight(phaseDuration);
+        const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
         const awaits = [];
         for (let i = 0; i < verifiersCount; i += 1) {
           awaits.push(ministroChain.propose(
@@ -150,10 +151,10 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
         let revealResults;
 
         beforeEach(async () => {
-          await mineUntilReveal(phaseDuration);
+          await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
 
           const blockNumber = await web3.eth.getBlockNumber();
-          assert.isTrue(isRevealPhase(blockNumber, phaseDuration));
+          assert.isTrue(isRevealPhase(blockNumber, proposePhaseDuration, revealPhaseDuration));
         });
 
         describe('passing tests', async () => {
@@ -208,7 +209,7 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
             });
 
             it('should NOT be possible to propose', async () => {
-              const blockHeight = await getBlockHeight(phaseDuration);
+              const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
               const awaits = [];
               for (let i = 0; i < verifiersCount; i += 1) {
                 // try propose
@@ -240,14 +241,14 @@ contract('Chain: 1 or more verifiers scenario (base on configuration)', (account
 
           describe('when we enter NEXT proposal phase', async () => {
             beforeEach(async () => {
-              await mineUntilPropose(phaseDuration);
+              await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
 
               const blockNumber = await web3.eth.getBlockNumber();
-              assert.isTrue(isProposePhase(blockNumber, phaseDuration));
+              assert.isTrue(isProposePhase(blockNumber, proposePhaseDuration, revealPhaseDuration));
             });
 
             it('should be able to propose using previous blinded proposal, because its new cycle', async () => {
-              const blockHeight = await getBlockHeight(phaseDuration);
+              const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
               const awaits = [];
               // depends on requirements, we can move this test to failing
               // and change contract to not accept this behaviour

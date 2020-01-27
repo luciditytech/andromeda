@@ -13,7 +13,8 @@ const {
 } = require('../helpers/deployers');
 
 const verifiersCount = 3;
-const phaseDuration = 5 * verifiersCount * 2;
+const proposePhaseDuration = 5 * verifiersCount * 2;
+const revealPhaseDuration = 5 * verifiersCount * 2;
 const requirePercentOfTokens = 70;
 
 contract('Chain: testing active/non active verifiers', (accounts) => {
@@ -27,7 +28,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
   before(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
 
@@ -49,12 +50,12 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
     describe('when we are in propose phase', async () => {
       before(async () => {
-        await mineUntilPropose(phaseDuration);
+        await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
       });
 
       it('should NOT be possible to propose', async () => {
         const awaits = [];
-        const blockHeight = await getBlockHeight(phaseDuration);
+        const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
         for (let i = 0; i < verifiersCount; i += 1) {
           awaits.push(ministroChain.propose(
             blindedProposals[i],
@@ -80,12 +81,12 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
         describe('when we are in propose phase', async () => {
           before(async () => {
-            await mineUntilPropose(phaseDuration);
+            await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
           });
 
           it('should be possible to propose', async () => {
             const awaits = [];
-            const blockHeight = await getBlockHeight(phaseDuration);
+            const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
 
             for (let i = 0; i < verifiersCount; i += 1) {
               awaits.push(ministroChain.propose(
@@ -110,7 +111,7 @@ contract('Chain: testing active/non active verifiers', (accounts) => {
 
             describe('they should be able to finish election and reveal vote', async () => {
               before(async () => {
-                await mineUntilReveal(phaseDuration);
+                await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
               });
 
               it('should be possible to reveal', async () => {
