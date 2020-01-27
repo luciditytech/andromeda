@@ -1,6 +1,6 @@
 {
   "name": "andromeda",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Consensus Smart Contracts",
   "main": "truffle.js",
   "directories": {
@@ -33,7 +33,7 @@
     "babel-register": "6.26.0",
     "bignumber.js": "7.2.1",
     "bip39": "2.5.0",
-    "contract-registry": "git+ssh://git@github.com/luciditytech/contract-registry.git#9c2fe02184f6ce70e836e03aee117ef27dfe7ec4",
+    "contract-registry": "git+ssh://git@github.com/luciditytech/contract-registry.git#4eaa0dd6d9c2d14d3bebbee40a546f1dda8eaba2",
     "digivice": "git+ssh://git@github.com/luciditytech/digivice.git#develop",
     "dotenv": "6.1.0",
     "ethereumjs-abi": "0.6.5",
