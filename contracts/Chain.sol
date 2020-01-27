@@ -270,4 +270,14 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   returns (uint256) {
     return _storage().initialBlockHeights(_shard);
   }
+
+  // override `SingleStorageStrategy.detachFromStorage`
+  function detachFromStorage(address _newStorageOwner)
+  internal {
+    require(singleStorage.switchOwnerTo(_newStorageOwner), "[detachFromStorage] failed");
+
+    emit LogDetachFromStorage(msg.sender, _newStorageOwner);
+
+    // _suicide(); - do not kill me after unregistering
+  }
 }
