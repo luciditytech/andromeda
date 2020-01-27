@@ -19,7 +19,7 @@ The proposing and reveal round are each roughly 30 minutes.
 
 * Election has two phases: propose and reveal. Duration of each is: N blocks.
 * Phases going cycle, every `N * 2` blocks new cycle start.
-* Noone is in charge of starting phases, its self-controlled mechanism.   
+* Noone is in charge of starting phases, its self-controlled mechanism.
 * Each election root results are save to a block and kept on `Chain` contract at `blockHeight` index.
 
 ## Development
@@ -83,20 +83,20 @@ of verifiers for performing tests. Please run this test against different values
 If you experience above issue during coverage test, then create file
 `touch ./allFiredEvents` each time before you run test command, it should help.
 
-* Test hang/freeze during execution  
+* Test hang/freeze during execution
 
 I think this might be connected to the fact, that we mining a lot during tests
-to move from one to next phase. If this will happen, just cancel the test and run again.    
+to move from one to next phase. If this will happen, just cancel the test and run again.
 
 ### Testing on testnet
 
 This is tricky part, because you don't have access to build-in accounts full of ETH :)
-You need to create accounts or use coinbase.   
+You need to create accounts or use coinbase.
 
 Along with truffle console, you can use Ethereum wallet.
 It allows you to watch contracts (base on provided address and abi).
 It will display you all events, help you use getter functions and also
-it will show you in real time current cycle block - this is helpful.  
+it will show you in real time current cycle block - this is helpful.
 Below some example screen, how it look like in Ethereum wallet:
 
  ![chain view](./eth-wallet-chain.png)
@@ -117,7 +117,7 @@ var registry = VerifierRegistry.at(registryAddr);
 var chain = Chain.at(chainAddr);
 var humanToken = HumanStandardToken.at(tokenAddr);
 
-# you can use any account as long as you can unlock it  
+# you can use any account as long as you can unlock it
 var verifier = eth.web3.accounts[0];
 registry.create('name', 192.168.8.8', { from: verifier }));
 ```
@@ -155,7 +155,7 @@ chain.getBlockRoot(255311,0);
 
 ### Deployment
 
-For Test Net you can simple use this:  
+For Test Net you can simple use this:
 ```
 truffle deploy --network staging
 ```
@@ -174,19 +174,19 @@ It will be much much faster and cheaper.
 
 #### Ropsten contracts
 
-* development
-[0x91d8746c3d25dec812bec7082870e6c765ef9c31](https://ropsten.etherscan.io/address/0x17ffd54f82482858bcea63d4e54a941c24d9e5b0#readContract)
+Current contract address can be resolved by `ContractRegistry`:
 * staging
-[0xfb97e68081faec9b2105a07fccd11306f3150acd](https://ropsten.etherscan.io/address/0xb3df87beb7035f551709aa6bde7daa4e13ce1e51#readContract)
+[0x0e45f3c9fa762b260f13211711f57f007b2a723d](https://ropsten.etherscan.io/address/0x0e45f3c9fa762b260f13211711f57f007b2a723d#readContract)
 * production
-[0xd370f07ec82fd3615b19d912244a459c02c7625d](https://ropsten.etherscan.io/address/0xb3b060d8f67be00b09734c67edc5198f0d3162fe#readContract)
+[0x8b16f249b31563921781dd3c1b6ea9f5c47b4c33](https://ropsten.etherscan.io/address/0x8b16f249b31563921781dd3c1b6ea9f5c47b4c33#readContract)
 
+`Chain` name in `bytes32` is `0x436861696e000000000000000000000000000000000000000000000000000000`
 
 #### Code verification
 
-1. run `truffle-flattener ./contracts/Chain.sol > all.sol` to combined solidity file.  
+1. run `truffle-flattener ./contracts/Chain.sol > all.sol` to combined solidity file.
  Review the file ie: you can remove pragma repetition,
- you can add some comments if you like.  
+ you can add some comments if you like.
 1. Use Remix + Metamask to deploy contract.
 1. Go to your contract on Etherscan.io and choose **Verify And Publish**
 1. Copy content of `all.sol` in solidity contract code field
