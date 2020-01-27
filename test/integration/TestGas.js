@@ -10,7 +10,8 @@ contract('Chain - test GAS', (accounts) => {
   let ministroChain;
 
   const verifiersCount = 9;
-  const phaseDuration = verifiersCount * 5;
+  const proposePhaseDuration = verifiersCount * 5;
+  const revealPhaseDuration = verifiersCount * 5;
   const requirePercentOfTokens = 70;
 
   const proposalsObj = createProposals(verifiersCount, accounts);
@@ -20,11 +21,11 @@ contract('Chain - test GAS', (accounts) => {
 
   before(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
 
-    await mineUntilReveal(phaseDuration);
+    await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
   });
 
 
@@ -34,9 +35,9 @@ contract('Chain - test GAS', (accounts) => {
     // you can change the order or create another scenarios
     // to see gar results, go to `truffle.js` and uncomment mocha - reporter, then run:
     // truffle test <thisFile>
-    await mineUntilPropose(phaseDuration);
+    await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
 
-    let blockHeight = await getBlockHeight(phaseDuration);
+    let blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
     const awaits = [];
     for (let i = 0; i < verifiersAddr.length; i += 1) {
       awaits.push(ministroChain.instance.propose(
@@ -47,11 +48,11 @@ contract('Chain - test GAS', (accounts) => {
     }
     await Promise.all(awaits);
 
-    await mineUntilReveal(phaseDuration);
+    await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
     await ministroChain.instance.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
 
-    await mineUntilPropose(phaseDuration);
-    blockHeight = await getBlockHeight(phaseDuration);
+    await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
+    blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
 
     await ministroChain.instance.propose(
       blindedProposals[0],

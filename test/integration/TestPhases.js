@@ -6,7 +6,8 @@ const {
 } = require('../helpers/deployers');
 
 contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
-  const phaseDuration = accounts.length * 2;
+  const proposePhaseDuration = accounts.length * 2;
+  const revealPhaseDuration = accounts.length * 2;
   const verifiersCount = accounts.length - 1;
   const requirePercentOfTokens = 70;
 
@@ -21,15 +22,15 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
 
   before(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
   });
 
   describe('when we start at the begin of propose phase', async () => {
     before(async () => {
-      await mineUntilReveal(phaseDuration);
-      await mineUntilPropose(phaseDuration);
+      await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
+      await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
     });
 
     it('should be possible to propose/reveal and repeat', async () => {
@@ -38,7 +39,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
 
       for (let numberOfCycles = 0; numberOfCycles < 3; numberOfCycles += 1) {
         // eslint-disable-next-line
-        const blockHeight = await getBlockHeight(phaseDuration);
+        const blockHeight = await  getBlockHeight(proposePhaseDuration, revealPhaseDuration);
 
         // for very first time, we are already in propose,
         // so we have 1 block less - that is why we need to start from 1.
@@ -56,7 +57,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
         awaits = [];
 
         // eslint-disable-next-line
-        await mineUntilReveal(phaseDuration);
+        await  mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
 
         for (let i = 0; proposals[i]; i += 1) {
           awaits.push(ministroChain.reveal(
@@ -73,7 +74,7 @@ contract('Chain - testing cycle, on testRPC 1tx == 1block', (accounts) => {
         awaits = [];
 
         // eslint-disable-next-line
-        await mineUntilPropose(phaseDuration);
+        await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
 
         nonce = false;
       }

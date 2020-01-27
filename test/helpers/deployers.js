@@ -21,12 +21,16 @@ async function deployVerifierRegistry(owner, contractRegistryAddr) {
 
 async function deployChain(
   owner, verifiersAddr,
-  blocksPerPhase, minimumStakingTokenPercentage, updateMinimumStakingTokenPercentageEnabled,
+  blocksPerPropose,
+  blocksPerReveal,
+  minimumStakingTokenPercentage,
+  updateMinimumStakingTokenPercentageEnabled,
 ) {
   const contractRegistry = await deployContractRegistry();
 
   const chainStorageInstance = await ChainStorageArtifact.new(
-    blocksPerPhase,
+    blocksPerPropose,
+    blocksPerReveal,
     minimumStakingTokenPercentage,
     updateMinimumStakingTokenPercentageEnabled,
   );

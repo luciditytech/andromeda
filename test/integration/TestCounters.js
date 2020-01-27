@@ -13,7 +13,8 @@ contract('Chain - testing counters', (accounts) => {
   let ministroChain;
   // for this test we need exactly 3
   const verifiersCount = 3;
-  const phaseDuration = verifiersCount * 5;
+  const proposePhaseDuration = verifiersCount * 5;
+  const revealPhaseDuration = verifiersCount * 5;
   const requirePercentOfTokens = 70;
 
   let counter;
@@ -29,21 +30,21 @@ contract('Chain - testing counters', (accounts) => {
     counter = new BigNumber(0);
 
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
 
-    await mineUntilReveal(phaseDuration);
+    await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
   });
 
   describe('when all verifiers proposed same proposal', () => {
     before(async () => {
-      await mineUntilPropose(phaseDuration);
+      await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
 
       const blockNumber = await web3.eth.getBlockNumber();
-      assert.isTrue(isProposePhase(blockNumber, phaseDuration));
+      assert.isTrue(isProposePhase(blockNumber, proposePhaseDuration, revealPhaseDuration));
 
-      const blockHeight = await getBlockHeight(phaseDuration);
+      const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
       const awaits = [];
       for (let i = 0; i < verifiersCount; i += 1) {
         awaits.push(ministroChain.propose(
@@ -57,10 +58,10 @@ contract('Chain - testing counters', (accounts) => {
 
     describe('when we enter revealing phase', () => {
       before(async () => {
-        await mineUntilReveal(phaseDuration);
+        await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
 
         const blockNumber = await web3.eth.getBlockNumber();
-        assert.isTrue(isRevealPhase(blockNumber, phaseDuration));
+        assert.isTrue(isRevealPhase(blockNumber, proposePhaseDuration, revealPhaseDuration));
       });
 
       describe('when first verifier revealed', () => {
@@ -125,12 +126,12 @@ contract('Chain - testing counters', (accounts) => {
 
       before(async () => {
         // now we need to wait for propose phase
-        await mineUntilPropose(phaseDuration);
+        await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
 
         const blockNumber = await web3.eth.getBlockNumber();
-        assert.isTrue(isProposePhase(blockNumber, phaseDuration));
+        assert.isTrue(isProposePhase(blockNumber, proposePhaseDuration, revealPhaseDuration));
 
-        const blockHeight = await getBlockHeight(phaseDuration);
+        const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
         const awaits = [];
         for (let i = 0; i < verifiersCount; i += 1) {
           awaits.push(ministroChain.propose(
@@ -167,10 +168,10 @@ contract('Chain - testing counters', (accounts) => {
 
         describe('when we enter reveal phase', async () => {
           before(async () => {
-            await mineUntilReveal(phaseDuration);
+            await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
 
             const blockNumber = await web3.eth.getBlockNumber();
-            assert.isTrue(isRevealPhase(blockNumber, phaseDuration));
+            assert.isTrue(isRevealPhase(blockNumber, proposePhaseDuration, revealPhaseDuration));
           });
 
           describe('when first (different) verifier reveal', async () => {

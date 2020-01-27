@@ -6,7 +6,8 @@ const {
 } = require('../helpers/deployers');
 
 contract('Chain - testing getters', (accounts) => {
-  const phaseDuration = 5;
+  const proposePhaseDuration = 10;
+  const revealPhaseDuration = 6;
   const verifiersCount = 1;
   const requirePercentOfTokens = 70;
 
@@ -21,7 +22,7 @@ contract('Chain - testing getters', (accounts) => {
 
   before(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
   });
@@ -36,17 +37,18 @@ contract('Chain - testing getters', (accounts) => {
     let balance;
 
     before(async () => {
-      await mineUntilReveal(phaseDuration);
-      await mineUntilPropose(phaseDuration);
+      await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
+      await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
 
-      blockHeight = await getBlockHeight(phaseDuration);
+      blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
 
       await ministroChain.propose(
         blindedProposals[0],
         blockHeight,
         { from: verifiersAddr[0] },
       );
-      await mineUntilReveal(phaseDuration);
+
+      await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
       results = await ministroChain.reveal(proposals[0], secrets[0], { from: verifiersAddr[0] });
 
       ({ sender, blockHeight, proposal } = results.LogReveal[0]);

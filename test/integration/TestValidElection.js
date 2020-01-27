@@ -15,7 +15,8 @@ const {
 } = require('../helpers/deployers');
 
 const verifiersCount = 9;
-const phaseDuration = 5 * verifiersCount;
+const proposePhaseDuration = 5 * verifiersCount;
+const revealPhaseDuration = 5 * verifiersCount;
 const requirePercentOfTokens = 70;
 
 let logPropose;
@@ -32,7 +33,7 @@ contract('Chain: testing validation of election', (accounts) => {
 
   beforeEach(async () => {
     ministroChain = await deployChain(
-      accounts[0], verifiersAddr, phaseDuration,
+      accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
       requirePercentOfTokens, true,
     );
 
@@ -40,7 +41,7 @@ contract('Chain: testing validation of election', (accounts) => {
       .at(await ministroChain.instance.contractRegistry.call());
     verifierRegistry = await VerifierRegistryArtifact.at(await contractRegistry.contractByName.call(fromAscii('VerifierRegistry')));
 
-    await mineUntilReveal(phaseDuration);
+    await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
   });
 
   it('election should be invalid at begin', async () => {
@@ -58,8 +59,8 @@ contract('Chain: testing validation of election', (accounts) => {
 
   describe('when all verifiers made a proposal', async () => {
     beforeEach(async () => {
-      await mineUntilPropose(phaseDuration);
-      const blockHeight = await getBlockHeight(phaseDuration);
+      await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
+      const blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
 
       const awaits = [];
       for (let i = 0; i < verifiersCount; i += 1) {
@@ -79,7 +80,7 @@ contract('Chain: testing validation of election', (accounts) => {
 
     describe('when verifiers reveal', async () => {
       beforeEach(async () => {
-        await mineUntilReveal(phaseDuration);
+        await mineUntilReveal(proposePhaseDuration, revealPhaseDuration);
       });
 
       it('should return information if election was valid', async () => {

@@ -10,7 +10,8 @@ module.exports = (
 
   return deployer.deploy(
     ChainStorageArtifact,
-    config.Chain.blocksPerPhase,
+    config.Chain.blocksPerPropose,
+    config.Chain.blocksPerReveal,
     config.Chain.minimumStakingTokenPercentage,
     false,
     options,

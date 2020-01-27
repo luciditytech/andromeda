@@ -9,7 +9,8 @@ const {
 } = require('../helpers/deployers');
 
 const verifiersCount = 1;
-const phaseDuration = 50 * verifiersCount;
+const proposePhaseDuration = 50 * verifiersCount;
+const revealPhaseDuration = 50 * verifiersCount;
 const requirePercentOfTokens = 100;
 
 contract('Chain: testing propose for block height', (accounts) => {
@@ -25,12 +26,12 @@ contract('Chain: testing propose for block height', (accounts) => {
   describe('when we are in propose phase', async () => {
     beforeEach(async () => {
       ministroChain = await deployChain(
-        accounts[0], verifiersAddr, phaseDuration,
+        accounts[0], verifiersAddr, proposePhaseDuration, revealPhaseDuration,
         requirePercentOfTokens, true,
       );
 
-      await mineUntilPropose(phaseDuration);
-      blockHeight = await getBlockHeight(phaseDuration);
+      await mineUntilPropose(proposePhaseDuration, revealPhaseDuration);
+      blockHeight = await getBlockHeight(proposePhaseDuration, revealPhaseDuration);
     });
 
     it('should NOT be possible to propose for invalid block height', async () => {
