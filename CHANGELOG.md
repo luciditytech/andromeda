@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ###Changed
 - Each phase has its own duration
+- Adds ability to check a proof for a block
 
 ## [0.5.1] - 2020-01-27
 ### Changed
