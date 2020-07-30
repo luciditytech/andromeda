@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ###Changed
 - Each phase has its own duration
 - Adds standalone voucher verification contract
+- Adds chain contract method to validate leaf
 
 ## [0.5.1] - 2020-01-27
 ### Changed

@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/cryptography/MerkleProof.sol";
 
 import "digivice/contracts/interfaces/IVerifierRegistry.sol";
 
@@ -276,6 +277,28 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   view
   returns (uint256) {
     return _storage().initialBlockHeights(_shard);
+  }
+
+  function isValidLeaf(
+    uint256 _blockHeight,
+    uint256 _shard,
+    bytes32 _leafId,
+    bytes32[] memory _proof
+  )
+  public
+  view
+  returns (bool valid) {
+    bytes32 root = _storage().getBlockRoot(_blockHeight, _shard);
+    require(_blockHeight > 0, "block height must be positive");
+    require(root != bytes32(0), "root for the given block is not valid");
+  
+    bool proven = MerkleProof.verify(
+      _proof,
+      root,
+      _leafId
+    );
+
+    return proven;
   }
 
   // override `SingleStorageStrategy.detachFromStorage`
