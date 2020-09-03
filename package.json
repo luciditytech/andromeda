@@ -33,8 +33,8 @@
     "babel-register": "6.26.0",
     "bignumber.js": "7.2.1",
     "bip39": "2.5.0",
-    "contract-registry": "git+ssh://git@github.com/luciditytech/contract-registry.git#4eaa0dd6d9c2d14d3bebbee40a546f1dda8eaba2",
-    "digivice": "git+ssh://git@github.com/luciditytech/digivice.git#develop",
+    "contract-registry": "git+ssh://git@github.com/luciditytech/contract-registry.git#hotfix/0.1.2",
+    "digivice": "git+ssh://git@github.com/luciditytech/digivice.git#feature/dependencies",
     "dotenv": "6.1.0",
     "ethereumjs-abi": "0.6.5",
     "ethereumjs-wallet": "0.6.2",
@@ -43,11 +43,11 @@
     "jssha": "2.3.1",
     "ministro-tool": "0.2.2",
     "openzeppelin-solidity": "2.1.2",
-    "staking-bank": "git+ssh://git@github.com/luciditytech/staking-bank.git#develop",
+    "staking-bank": "git+ssh://git@github.com/luciditytech/staking-bank.git#feature/dependencies",
     "token-sale-contracts": "git+ssh://git@github.com/luciditytech/token-sale-contracts.git#195342809eee9ffe053a19f855685df469838ed5",
     "truffle": "5.0.5",
     "truffle-flattener": "1.3.0",
-    "truffle-hdwallet-provider": "0.0.6",
+    "truffle-hdwallet-provider": "1.0.17",
     "truffle-wallet-provider": "0.0.5",
     "typedarray-to-buffer": "3.1.5"
   },
@@ -63,7 +63,7 @@
     "pify": "4.0.0",
     "solidity-coverage": "0.5.11",
     "solium": "1.2.3",
-    "web3-eth": "1.0.0-beta.36",
-    "web3-utils": "1.0.0-beta.36"
+    "web3-eth": "1.2.11",
+    "web3-utils": "1.2.11"
   }
 }
