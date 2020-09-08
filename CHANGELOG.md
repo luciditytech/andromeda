@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Each phase has its own duration
 - Adds standalone voucher verification contract
 - Adds chain contract method to validate leaf
+- uint256 to blocksPerPropose and blocksPerReveal
 
 ## [0.5.1] - 2020-01-27
 ### Changed
