@@ -59,7 +59,7 @@
     "eth-gas-reporter": "0.1.12",
     "ganache-cli": "6.1.8",
     "lk-test-helpers": "0.1.5",
-    "lodash": "4.17.11",
+    "lodash": "4.17.19",
     "pify": "4.0.0",
     "solidity-coverage": "0.5.11",
     "solium": "1.2.3",
