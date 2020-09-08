@@ -46,21 +46,21 @@ contract ChainStorage is StorageBase {
 
   bool public updateMinimumStakingTokenPercentageEnabled;
 
-  uint8 public blocksPerPropose;
-  uint8 public blocksPerReveal;
+  uint256 public blocksPerPropose;
+  uint256 public blocksPerReveal;
 
   uint8 public minimumStakingTokenPercentage;
 
   event LogChainConfig(
-    uint8 blocksPerPropose,
-    uint8 blocksPerReveal,
+    uint256 blocksPerPropose,
+    uint256 blocksPerReveal,
     uint8 requirePercentOfTokens,
     bool updateMinimumStakingTokenPercentageEnabled
   );
 
   constructor(
-    uint8 _blocksPerPropose,
-    uint8 _blocksPerReveal,
+    uint256 _blocksPerPropose,
+    uint256 _blocksPerReveal,
     uint8 _minimumStakingTokenPercentage,
     bool _updateMinimumStakingTokenPercentageEnabled) public {
     require(_blocksPerPropose > 0, "_blocksPerPropose can't be empty");

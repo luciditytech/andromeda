@@ -239,14 +239,14 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
   function blocksPerPropose()
   public
   view
-  returns (uint8) {
+  returns (uint256) {
     return _storage().blocksPerPropose();
   }
 
   function blocksPerReveal()
   public
   view
-  returns (uint8) {
+  returns (uint256) {
     return _storage().blocksPerReveal();
   }
 
@@ -291,7 +291,7 @@ contract Chain is IChain, RegistrableWithSingleStorage, ReentrancyGuard, Ownable
     bytes32 root = _storage().getBlockRoot(_blockHeight, _shard);
     require(_blockHeight > 0, "block height must be positive");
     require(root != bytes32(0), "root for the given block is not valid");
-  
+
     bool proven = MerkleProof.verify(
       _proof,
       root,
